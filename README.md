@@ -7,7 +7,7 @@ Additional developers: [Matthias Scheutz](https://github.com/mscheutz/)
 ## Additions by Kat, Mavis, Harsh, Ju-Hung, and Luoyou
 
 ### PathPlanner
-A PathPlanner object can be used to generate an initial plan from the agent's current position to a goal position. To create a new PathPlanner, you will need a socket and environment:
+A PathPlanner object can be used to generate a plan from the agent's current position to a goal position. Call the `get_path` function and pass the game state and the goal location:
 
 ```
 HOST = '127.0.0.1'
@@ -15,12 +15,10 @@ PORT = 9000
 sock_game = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock_game.connect((HOST, PORT))
 state = recv_socket_data(sock_game)
-planner = PathPlanner(socket_game=sock_game, env=game_state)
-```
+game_state = json.loads(state)
 
-Then, generate a path by calling the `get_path` function. Pass the goal location as a (x, y) tuple:
-```
-path = planner.get_path((x , y))
+planner = PathPlanner()
+path = planner.get_path(game_state, (goal_x , goal_y))
 ```
 
 The function will return the path as a dictionary of states and actions. The keys are the agent's state and the values are the actions to be taken from each state. For example:

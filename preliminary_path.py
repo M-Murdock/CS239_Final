@@ -9,18 +9,10 @@ from utils import recv_socket_data
 
 
 class PathPlanner:
-    def __init__(self, socket_game, env):
-        self.shopping_list = env['observation']['players'][0]['shopping_list']
-        self.shopping_quant = env['observation']['players'][0]['list_quant']
-        self.game = socket_game
+    def __init__(self):
+
         self.map_width = 20
         self.map_height = 25
-        self.obs = env['observation']
-        self.cart = None
-        self.basket = None
-        self.player = self.obs['players'][0]
-        self.last_action = "NOP"
-        self.current_direction = self.player['direction']
         self.size = [0.6, 0.4]
         
         self.objs = [
@@ -226,9 +218,12 @@ class PathPlanner:
     """
     Public function for generating path from start to goal. Returns the path as a dictionary of states and actions
     """
-    def get_path(self, goal, is_item = True):
+    def get_path(self, env, goal, is_item = True):
+        # get observations from the environment
+        player = env['observation']['players'][0]
+        self.current_direction = player['direction']
         
-        start = (self.player['position'][0], self.player['position'][1])
+        start = (player['position'][0], player['position'][1])
         
         path = self._astar(start, goal, is_item = True)
         if path == None:
@@ -272,7 +267,7 @@ if __name__ == "__main__":
     game_state = json.loads(state)
     shopping_list = game_state['observation']['players'][0]['shopping_list']
     shopping_quant = game_state['observation']['players'][0]['list_quant']
-    player = PathPlanner(socket_game=sock_game, env=game_state)
+    player = PathPlanner()
     
     offset = 1
         
@@ -280,7 +275,5 @@ if __name__ == "__main__":
     
     print("go for item: ", item)
     item_pos = find_item_position(game_state, item)
-    
-    path = player.get_path((item_pos[0] + offset, item_pos[1]))
+    path = player.get_path(game_state, (item_pos[0] + offset, item_pos[1]))
     print(path) 
-            
