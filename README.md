@@ -4,6 +4,33 @@ Original developers: [Teah Markstone](https://github.com/teahmarkstone/) and [Da
 
 Additional developers: [Matthias Scheutz](https://github.com/mscheutz/)
 
+## Additions by Kat, Mavis, Harsh, Ju-Hung, and Luoyou
+
+### PathPlanner
+A PathPlanner object can be used to generate an initial plan from the agent's current position to a goal position. To create a new PathPlanner, you will need a socket and environment:
+
+```
+HOST = '127.0.0.1'
+PORT = 9000
+sock_game = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock_game.connect((HOST, PORT))
+state = recv_socket_data(sock_game)
+planner = PathPlanner(socket_game=sock_game, env=game_state)
+```
+
+Then, generate a path by calling the `get_path` function. Pass the goal location as a (x, y) tuple:
+```
+path = planner.get_path((x , y))
+```
+
+The function will return the path as a dictionary of states and actions. The keys are the agent's state and the values are the actions to be taken from each state. For example:
+
+```
+{(1.2, 15.6): 'SOUTH', (1.2, 15.75): 'SOUTH', ...}
+```
+
+If no valid path exists, `get_path` will return `None`
+
 ## Task setting
 
 An autonomous agent has to perform a shopping task in a simulated supermarket environment, gathering food items on a shopping list in a cart or basket, paying for them at the cash register and leaving the store with the purchased items.  The simulation is based on [Gymnasium].(https://gymnasium.farama.org/) and can be run manually with keyboard input, or with autonomous agents (in Python and Java) connected via a socket connection.
