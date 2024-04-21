@@ -194,7 +194,7 @@ class PathPlanner:
         print(len(actions))
         for i in range(0, len(path)):
             # state_action_dict[details + "" + str(path[i])] = actions[i]
-            state_action_dict[details + "" + str(path[i])] = actions[i]
+            state_action_dict[details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = actions[i]
         
         return state_action_dict
     
