@@ -29,6 +29,21 @@ The function will return the path as a dictionary of states and actions. The key
 
 If no valid path exists, `get_path` will return `None`
 
+In addition to the xy coordinates, the state also indicates whether the agent is carrying a basket or cart. By default, the agent is carrying neither. Indicate the presence of a basket or cart by passing either of the following arguments:
+
+```
+path = planner.get_path(game_state, (goal_x, goal_y), has_basket=True)
+```
+Or
+```
+path = planner.get_path(game_state, (goal_x, goal_y), has_cart=True)
+```
+
+This will be reflected in the agent's state:
+```
+{'basket(9.900000000000013, 5.099999999999975)': 'NOOP', ...}
+```
+
 ## Task setting
 
 An autonomous agent has to perform a shopping task in a simulated supermarket environment, gathering food items on a shopping list in a cart or basket, paying for them at the cash register and leaving the store with the purchased items.  The simulation is based on [Gymnasium].(https://gymnasium.farama.org/) and can be run manually with keyboard input, or with autonomous agents (in Python and Java) connected via a socket connection.

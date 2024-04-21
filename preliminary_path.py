@@ -194,7 +194,7 @@ class PathPlanner:
         print(len(actions))
         for i in range(0, len(path)):
             # state_action_dict[details + "" + str(path[i])] = actions[i]
-            state_action_dict[path[i]] = actions[i]
+            state_action_dict[details + "" + str(path[i])] = actions[i]
         
         return state_action_dict
     
@@ -221,6 +221,9 @@ class PathPlanner:
             return None
 
         actions = self.from_path_to_actions(path)
+        
+        if actions == None:
+            return None
 
         return self._build_state_action_dict(actions, path, details)
 
@@ -267,5 +270,5 @@ if __name__ == "__main__":
     print("go for item: ", item)
     item_pos = find_item_position(game_state, item)
     print(item_pos)
-    path = player.get_path(game_state, (item_pos[0] + offset, item_pos[1]))
+    path = player.get_path(game_state, (item_pos[0] + offset, item_pos[1]), has_basket=True)
     print(path)
