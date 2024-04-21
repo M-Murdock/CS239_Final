@@ -41,7 +41,7 @@ path = planner.get_path(game_state, (goal_x, goal_y), has_cart=True)
 
 This will be reflected in the agent's state:
 ```
-{'basket(9.900000000000013, 5.099999999999975)': 'NOOP', ...}
+{'basket(4.05, 10.65)': 'NOOP', ...}
 ```
 
 ## Task setting
