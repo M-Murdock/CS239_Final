@@ -13,7 +13,7 @@ class PathPlanner:
 
         self.map_width = 20
         self.map_height = 25
-        self.size = [0.6, 0.4]
+        self.size = [0.6, 0.4] # by default, the agent isn't holding anything
         
         self.objs = [
             {'height': 2.5, 'width': 2.25, 'position': [1, 4.5], 're_centered_position': [2.125, 5.75]},
@@ -167,39 +167,20 @@ class PathPlanner:
         # if the current direction is not the same as the direction of the first step in the path, add a TURN action
         # directions = [(0, step), (step, 0), (0, -step), (-step, 0)]  # Adjacent squares: N, E, S, W
         actions = []
-        cur_dir = self.current_direction
-
+        print("PATH")
         for i in range(len(path) - 1):
             x1, y1 = path[i]
             x2, y2 = path[i + 1]
             if x2 > x1:
-                if cur_dir != '2':
-                    actions.append('EAST')
-                    cur_dir = '2'
-                    actions.append('EAST' )
-                else:
-                    actions.append('EAST')
+                actions.append('EAST')
             elif x2 < x1:
-                if cur_dir != '3':
-                    actions.append('WEST')
-                    cur_dir = '3'
-                    actions.append('WEST')
-                else:
-                    actions.append('WEST')
+                actions.append('WEST')
             elif y2 < y1:
-                if cur_dir != '0':
-                    actions.append('NORTH')
-                    cur_dir = '0'
-                    actions.append('NORTH')
-                else:
-                    actions.append('NORTH')
+                actions.append('NORTH')
             elif y2 > y1:
-                if cur_dir != '1':
-                    actions.append('SOUTH')
-                    cur_dir = '1'
-                    actions.append('SOUTH')
-                else:
-                    actions.append('SOUTH')
+                actions.append('SOUTH')
+            
+        actions.append('NOOP')
         
         return actions
     
@@ -207,9 +188,12 @@ class PathPlanner:
     """
     Using actions and path, build a dictionary of states and actions
     """
-    def _build_state_action_dict(self, actions, path):
+    def _build_state_action_dict(self, actions, path, details):
         state_action_dict = {}
+        print(len(path))
+        print(len(actions))
         for i in range(0, len(path)):
+            # state_action_dict[details + "" + str(path[i])] = actions[i]
             state_action_dict[path[i]] = actions[i]
         
         return state_action_dict
@@ -218,20 +202,27 @@ class PathPlanner:
     """
     Public function for generating path from start to goal. Returns the path as a dictionary of states and actions
     """
-    def get_path(self, env, goal, is_item = True):
+    def get_path(self, env, goal, is_item = True, has_cart=False, has_basket=False):
+        details = ""
+        if has_cart:
+            self.size = [1.1, 1.15] # size of agent is [0.6, 0.4] and the size of cart is [0.5, 0.75]. Therefore, size of agent+cart = [1.1, 1.15]
+            details = "cart"
+        elif has_basket:
+            details = "basket"
+            
         # get observations from the environment
         player = env['observation']['players'][0]
-        self.current_direction = player['direction']
         
         start = (player['position'][0], player['position'][1])
         
         path = self._astar(start, goal, is_item = True)
+        
         if path == None:
             return None
 
         actions = self.from_path_to_actions(path)
 
-        return self._build_state_action_dict(actions, path)
+        return self._build_state_action_dict(actions, path, details)
 
             
 def find_item_position(data, item_name):
@@ -275,5 +266,6 @@ if __name__ == "__main__":
     
     print("go for item: ", item)
     item_pos = find_item_position(game_state, item)
+    print(item_pos)
     path = player.get_path(game_state, (item_pos[0] + offset, item_pos[1]))
-    print(path) 
+    print(path)
