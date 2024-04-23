@@ -30,6 +30,15 @@ target_locations = {
     "exit": [-0.5, 15.6]
 }
 
+def get_item_location(item):
+    if item in target_locations:
+        return target_locations[item]
+    else:
+        return None
+
+def wait_in_the_corner():
+    pass
+
 def euclidean_distance(pos1, pos2):
     # Calculate Euclidean distance between two points
     return ((pos1[0] - pos2[0])**2 + (pos1[1] - pos2[1])**2)**0.5
