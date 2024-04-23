@@ -55,7 +55,7 @@ def wait_in_the_corner(socket_game, player_number):
                     location = key2["position"]
 
     # use astar to plan the path
-    # wait 5 sec
+    # wait 5 sec and check
     return None
 
 def euclidean_distance(pos1, pos2):
