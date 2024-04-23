@@ -3,6 +3,8 @@
 import json
 import random
 import socket
+import time
+from astar_path_planner import *
 
 target_locations = {
     "cart": [1, 17.5],
@@ -46,16 +48,18 @@ def get_item_location(item):
 
 def wait_in_the_corner(socket_game, player_number):
     # get current location
-    output = recv_socket_data(sock_game)  # get observation from env
+    output = recv_socket_data(socket_game)  # assuming `socket_game` is the correct variable name
     state = json.loads(output)
-    for key in state["observation"]:
-        for key2 in state["observation"][key]:
-            if key == "players":
-                if key['index'] == player_number:
-                    location = key2["position"]
+    for player in state["observation"]["players"]:
+        if player['index'] == player_number:
+            location = player["position"]
+            break
 
     # use astar to plan the path
+
     # wait 5 sec and check
+    time.sleep(5)
+
     return None
 
 def euclidean_distance(pos1, pos2):
