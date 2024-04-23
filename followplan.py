@@ -77,7 +77,7 @@ def GetCurrentState(sock_game, playernumber):
     for key in state["observation"]: 
      for key2 in state["observation"][key]: 
         if key == "players":
-            if key['index'] == ourplayernumber:
+            if key['index'] == playernumber:
                 currentposition = key2["position"]
                 basket = key2["baskets"]
                 carts = key2["carts"]
@@ -103,13 +103,21 @@ def ExecutePlanToItem(preliminarypath, sock_game):
         for key in preliminarypath:
             if state == key:
                 action = preliminarypath[key]
-                print("Sending action: ", action)
-                sock_game.send(str.encode(action))  # send action to env
-                preliminarypath.pop(key)
-                pollingcounter = pollingcounter + 1 # increment the stepcount
-                break
+                actionok = checknorms(action)
+                if actionok == True:
+                    ## actually take the action in the environment
+                    print("Sending action: ", action)
+                    sock_game.send(str.encode(action))  # send action to env
+                    preliminarypath.pop(key)
+                    pollingcounter = pollingcounter + 1 # increment the stepcount
+                    break
+                else:
+                    return "Error: action not allowed"
             else:   
                 return "Error: state not in path, need to replan"
         
-
+def checknorms(action):
+    # use norm.py to check if the action is allowed
+    
+    
     
