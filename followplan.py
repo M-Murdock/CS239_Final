@@ -52,7 +52,7 @@ def get_next_shopping_item(state):
     shopping_quants = state['observation']['players'][0]['list_quant']
     user_location = state['observation']['players'][0]['position']
 
-    #quant_dict = dict(zip(shopping_list, shopping_quants))
+    quant_dict = dict(zip(shopping_list, shopping_quants))
 
     curr_min_distance = 999999999
     closest_item = None
@@ -64,8 +64,8 @@ def get_next_shopping_item(state):
             curr_min_distance = distance
             closest_item = item
     
-    return closest_item
-    # return tuple(closest_item, quant_dict[closest_item])
+    # return closest_item
+    return tuple(closest_item, quant_dict[closest_item])
 
 
 
