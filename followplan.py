@@ -1,3 +1,9 @@
+# Author: Mavis, Kat, Harsh, Ju-Hung, Luoyou
+
+import json
+import random
+import socket
+
 target_locations = {
     "cart": [1, 17.5],
     "milk": [5.5, 3.5],
@@ -38,8 +44,18 @@ def get_item_location(item):
     else:
         return None
 
-def wait_in_the_corner():
+def wait_in_the_corner(socket_game, player_number):
+    # get current location
+    output = recv_socket_data(sock_game)  # get observation from env
+    state = json.loads(output)
+    for key in state["observation"]:
+        for key2 in state["observation"][key]:
+            if key == "players":
+                if key['index'] == player_number:
+                    location = key2["position"]
 
+    # use astar to plan the path
+    # wait 5 sec
     return None
 
 def euclidean_distance(pos1, pos2):
