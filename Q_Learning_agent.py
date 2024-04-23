@@ -23,7 +23,8 @@ class QLAgent:
         
     def learning(self, action, rwd, state, next_state):
         # implement the Q-learning function
+        pass
 
     def choose_action(self, state):
         # implement the action selection for the fully trained agent
-       
+        pass

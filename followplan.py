@@ -27,7 +27,9 @@ target_locations = {
     "onion": [13.5, 23.5],
     "fresh fish": [ 17.0, 15.0],
     "checkout": [4.0, 11.5],
-    "exit": [-0.5, 15.6]
+    "exit": [-0.5, 15.6],
+    "corner_1": [18, 2],
+    "corner_2": [18, 22]
 }
 
 def get_item_location(item):
@@ -37,7 +39,8 @@ def get_item_location(item):
         return None
 
 def wait_in_the_corner():
-    pass
+
+    return None
 
 def euclidean_distance(pos1, pos2):
     # Calculate Euclidean distance between two points
