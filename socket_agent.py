@@ -8,6 +8,22 @@ import socket
 from env import SupermarketEnv
 from utils import recv_socket_data
 
+def GetCurrentState(sock_game, playernumber):
+    # get the current state of the environment
+    smallstate = ""
+    output = recv_socket_data(sock_game)  # get observation from env
+    state = json.loads(output)
+    for key in state["observation"]: 
+     for key2 in state["observation"][key]: 
+        if key == "players":
+            if key2['index'] == playernumber:
+                currentposition = key2["position"]
+                print("currentposition: ", currentposition)
+                carts = key2["curr_cart"]
+    smallstate = str(carts)+str(currentposition)
+    print("smallstate: ", smallstate)
+    print(state)
+    return smallstate
 
 if __name__ == "__main__":
 
@@ -35,8 +51,11 @@ if __name__ == "__main__":
         print("Sending action: ", action)
         sock_game.send(str.encode(action))  # send action to env
 
-        output = recv_socket_data(sock_game)  # get observation from env
-        output = json.loads(output)
+        #output = recv_socket_data(sock_game)  # get observation from env
+        #output = json.loads(output)
 
-        print("Observations: ", output["observation"])
-        print("Violations", output["violations"])
+        state = GetCurrentState(sock_game, 0)
+
+        print("State: ", state)
+        #print("Observations: ", output["observation"])
+        #print("Violations", output["violations"])

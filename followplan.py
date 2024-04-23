@@ -66,28 +66,44 @@ def get_next_shopping_item(state):
 
 
 
-def GetCurrentState(sock_game):
+def GetCurrentState(sock_game, playernumber):
     # get the current state of the environment
+    smallstate = ""
     output = recv_socket_data(sock_game)  # get observation from env
-    output = json.loads(output)
-    return state
+    state = json.loads(output)
+    for key in state["observation"]: 
+     for key2 in state["observation"][key]: 
+        if key == "players":
+            if key['index'] == ourplayernumber:
+                currentposition = key2["position"]
+                basket = key2["baskets"]
+                carts = key2["carts"]
+    smallstate.append(basket)
+    smallstate.append(carts)
+    smallstate.append(currentposition)
+    return smallstate
 
 
-def ExecutePlanToItem(preliminarypath): 
+def ExecutePlanToItem(preliminarypath, sock_game): 
     # the path is a dictionary of states and actions
     # get the current state from the environment
     # find out if the current state is any of the states in the path
     # if so, execute the action
     # if not, return an error
-
+    pollingcounter = 0
     while len(preliminarypath) > 0:
         state = GetCurrentState()
+        polllength = 3
+        if pollingcounter > polllength:
+            CheckPathBlocked(preliminarypath, sock_game)
+            pollingcounter = 0 # reset the counter
         for key in preliminarypath:
             if state == key:
                 action = preliminarypath[key]
                 print("Sending action: ", action)
                 sock_game.send(str.encode(action))  # send action to env
                 preliminarypath.pop(key)
+                pollingcounter = pollingcounter + 1 # increment the stepcount
                 break
             else:   
                 return "Error: state not in path, need to replan"
