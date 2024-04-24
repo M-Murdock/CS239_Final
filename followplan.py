@@ -55,6 +55,8 @@ def get_item_location(item):
             item_pos = [18.25, 10.75]
     if item == 'milk' or item == 'chocolate milk' or item == 'strawberry milk':
         y_offset = 3
+    else:
+        y_offset = 0
 
     item_location = [item_pos[0] + offset, item_pos[1] + y_offset]
     return item_location
