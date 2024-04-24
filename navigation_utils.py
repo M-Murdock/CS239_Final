@@ -94,7 +94,7 @@ def check_in_front(player_id, state, distance):
         if p['index'] != player_id:
             for point in points:
                 if point_in_object(point, p):
-                    return True  # Obstacle detected
+                    return True
 
     # Check each point for collision with carts
     for cart in carts:
@@ -102,7 +102,7 @@ def check_in_front(player_id, state, distance):
             continue  # Skip the cart being held by the player
         for point in points:
             if point_in_object(point, cart):
-                return True  # Obstacle detected
+                return True
 
     return False
 
