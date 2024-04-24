@@ -13,16 +13,24 @@ def GetCurrentState(sock_game, playernumber):
     smallstate = ""
     output = recv_socket_data(sock_game)  # get observation from env
     state = json.loads(output)
+    if state["observation"]['baskets'] != []:
+        if state["observation"]['baskets']['owner'] == playernumber:
+            smallstate.append = "basket"       
+    if state["observation"]['players'][playernumber]["curr_cart"] > 0:
+        smallstate.join = "cart"
     for key in state["observation"]: 
      for key2 in state["observation"][key]: 
         if key == "players":
-            if key2['index'] == playernumber:
-                currentposition = key2["position"]
-                print("currentposition: ", currentposition)
-                carts = key2["curr_cart"]
-    smallstate = str(carts)+str(currentposition)
-    print("smallstate: ", smallstate)
-    print(state)
+            for thisplayer in list(state["observation"][key]):
+                print("thisplayer: ", thisplayer)
+                print(thisplayer['index'])
+                if thisplayer['index'] == playernumber:
+                    print("found player")
+                    currentposition = str(key2["position"])
+                    print("currentposition: ", currentposition)
+                    smallstate = smallstate + currentposition
+                    print("smallstate: ", smallstate)
+    print("smallstate: ", smallstate)                
     return smallstate
 
 if __name__ == "__main__":

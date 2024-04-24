@@ -113,16 +113,24 @@ def GetCurrentState(sock_game, playernumber):
     smallstate = ""
     output = recv_socket_data(sock_game)  # get observation from env
     state = json.loads(output)
+    if state["observation"]['baskets'] != []:
+        if state["observation"]['baskets']['owner'] == playernumber:
+            smallstate.append = "basket"       
+    if state["observation"]['players'][playernumber]["curr_cart"] > 0:
+        smallstate.join = "cart"
     for key in state["observation"]: 
      for key2 in state["observation"][key]: 
         if key == "players":
-            if key['index'] == playernumber:
-                currentposition = key2["position"]
-                basket = key2["baskets"]
-                carts = key2["carts"]
-    smallstate.append(basket)
-    smallstate.append(carts)
-    smallstate.append(currentposition)
+            for thisplayer in list(state["observation"][key]):
+                print("thisplayer: ", thisplayer)
+                print(thisplayer['index'])
+                if thisplayer['index'] == playernumber:
+                    print("found player")
+                    currentposition = str(key2["position"])
+                    print("currentposition: ", currentposition)
+                    smallstate = smallstate + currentposition
+                    
+    print("smallstate: ", smallstate)                
     return smallstate
 
 
@@ -157,6 +165,7 @@ def ExecutePlanToItem(preliminarypath, sock_game):
         
 def checknorms(action):
     # use norm.py to check if the action is allowed
-    
+    # this is hard, for now
+    return True
     
     
