@@ -15,6 +15,11 @@ class PathPlanner:
         self.map_height = 25
         self.size = [0.6, 0.4] # by default, the agent isn't holding anything
         
+        self.cartReturns = [2, 18.5]
+        self.basketReturns = [3.5, 18.5]
+        self.registerReturns_1 = [2, 4.5]
+        self.registerReturns_2 = [2, 9.5]
+
         self.objs = [
         {'height': 2.5, 'width': 3, 'position': [0.2, 4.5], 're_centered_position': [2.125, 5.75]},
         {'height': 2.5, 'width': 3, 'position': [0.2, 9.5], 're_centered_position': [2.125, 10.75]},
@@ -193,7 +198,6 @@ class PathPlanner:
         # if the current direction is not the same as the direction of the first step in the path, add a TURN action
         # directions = [(0, step), (step, 0), (0, -step), (-step, 0)]  # Adjacent squares: N, E, S, W
         actions = []
-        print("PATH")
         for i in range(len(path) - 1):
             x1, y1 = path[i]
             x2, y2 = path[i + 1]
@@ -205,8 +209,6 @@ class PathPlanner:
                 actions.append('NORTH')
             elif y2 > y1:
                 actions.append('SOUTH')
-            
-        actions.append('NOOP')
         
         return actions
     
@@ -215,44 +217,176 @@ class PathPlanner:
     Using actions and path, build a dictionary of states and actions
     """
     def _build_state_action_dict(self, actions, path, details):
-        state_action_dict = {}
-        print(len(path))
         print(len(actions))
+        print(len(path))
+        state_action_dict = {}
         for i in range(0, len(path)):
-            # state_action_dict[details + "" + str(path[i])] = actions[i]
             state_action_dict[details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = actions[i]
         
         return state_action_dict
     
+    # returns the y coordinate of the midpoint of the agent's current aisle
+    # this is used for determining where to leave the cart when getting something off the shelf
+    def _which_aisle(shelf, goal):
+        y = goal[1]
+        
+        # top aisle
+        if y <= 5.5:
+            mid = 3.5
+            
+        elif y <= 9.5:
+            mid = 7.5
+
+        elif y <= 13.5:
+            mid = 11.5
+            
+        elif y <= 17.5:
+            mid = 15.5
+            
+        elif y <= 21.5:
+            mid = 18.5
+        
+        else:
+            mid = 23.5
+            
+        return (goal[0], mid)
+    
+    def _face_item(self, start, last_step, goal):
+        # NOTE: this only works for shelves
+        x, y = start
+        if goal[1] < y:
+            if not last_step == 'NORTH':
+                return 'NORTH'
+        elif goal[1] > y:
+            if not last_step == 'SOUTH':
+                return 'SOUTH'
+        return None
+            
+    # creates state-action dict to pick up basket or cart
+    def grab_cart_or_basket(self, env, kind="basket"): 
+        player = env['observation']['players'][0]
+        start = (player['position'][0], player['position'][1])
+        
+        if kind == "cart":
+            goal_x = self.cartReturns[0] + 1
+            goal_y = self.cartReturns[1]
+        else:
+            goal_x = self.basketReturns[0] + 1
+            goal_y = self.basketReturns[1]
+            
+        path = self._astar(start, (goal_x, goal_y))     
+        if path == None:
+                return None
+        actions = self.from_path_to_actions(path) # get action to take from each xy position
+        if actions == None:
+            return None
+        # face = self._face_item(start, actions[-1], (goal_x, goal_y)) # face the shelf
+        # if face == None:
+        #     actions.append("INTERACT")
+        actions.append("INTERACT")
+        
+        state_act_dict = self._build_state_action_dict(actions, path, "") # make state-action dictionary
+        state_act_dict["" + str((round(goal_x, 3), round(goal_y, 3)))] = 'INTERACT' # take item from shelf NOTE: I may need to include direction in this as well
+        
+        return state_act_dict
+    
+    def checkout(self, env):
+        player = env['observation']['players'][0]
+        start = (player['position'][0], player['position'][1])
+        
+        if start[1] < 7:
+            goal_x = self.registerReturns_1[0] + 1
+            goal_y = self.registerReturns_1[1]
+        else:
+            goal_x = self.registerReturns_2[0] + 1
+            goal_y = self.registerReturns_2[1]
+  
+        path = self._astar(start, (goal_x, goal_y))     
+        if path == None:
+                return None
+        actions = self.from_path_to_actions(path) # get action to take from each xy position
+        if actions == None:
+            return None
+        # face = self._face_item(start, actions[-1], (goal_x, goal_y)) # face the shelf
+        # if face == None:
+        #     actions.append("INTERACT")
+        actions.append("INTERACT")
+        
+        state_act_dict = self._build_state_action_dict(actions, path, "") # make state-action dictionary
+        state_act_dict["" + str((round(goal_x, 3), round(goal_y, 3)))] = 'INTERACT' # take item from shelf NOTE: I may need to include direction in this as well
+        
+        return state_act_dict
+        
+        
+        
+    # returns the state-action dictionary for grabbing an item off the shelf
+    def _grab_item(self, details, start, goal):
+        
+        path = self._astar(start, goal, is_item = True) # get xy coordinates
+        if path == None:
+                return None
+        actions = self.from_path_to_actions(path) # get action to take from each xy position
+        if actions == None:
+                return None
+            
+        face = self._face_item(start, actions[-1], goal) # face the shelf
+        if face == None:
+            actions.append("NOOP")
+        else:
+            actions.append(face)
+            print("Facing shelf " + str(face))
+            
+            
+        state_act_dict = self._build_state_action_dict(actions, path, details) # make state-action dictionary
+        state_act_dict["" + str((round(goal[0], 3), round(goal[1], 3)))] = 'INTERACT' # take item from shelf NOTE: I may need to include direction in this as well
+        
+        return state_act_dict
+        
+        
+    def _get_cart_path(self, start, goal):
+        self.size = [1.1, 1.15]
+        # get close to the shelf and leave the cart
+        leave_cart_loc = self._which_aisle(goal)
+        path1 = self._astar(start, leave_cart_loc, is_item = True)
+        if path1 == None:
+                return None
+        actions = self.from_path_to_actions(path1)
+        if actions == None:
+                return None
+        actions.append('TOGGLE_CART')
+        state_act_dict = self._build_state_action_dict(actions, path1, "cart")
+        
+        
+        # grab the item
+        try:
+            self.size = [0.6, 0.4]
+            state_act_dict.update(self._grab_item("", leave_cart_loc, goal))
+        except:
+            return None
+        
+        # return to cart
+        state_act_dict.update(self._grab_item("", goal, leave_cart_loc)) # drop the item in the cart
+        state_act_dict["cart" + str((round(leave_cart_loc[0], 3), round(leave_cart_loc[1], 3)))] = 'TOGGLE_CART' # grab the cart
+        self.size = [1.1, 1.15]
+        
+        return state_act_dict
     # -----------------------------------------
     """
     Public function for generating path from start to goal. Returns the path as a dictionary of states and actions
     """
-    def get_path(self, env, goal, is_item = True, has_cart=False, has_basket=False):
-        details = ""
-        if has_cart:
-            self.size = [1.1, 1.15] # size of agent is [0.6, 0.4] and the size of cart is [0.5, 0.75]. Therefore, size of agent+cart = [1.1, 1.15]
-            details = "cart"
-        elif has_basket:
-            details = "basket"
-            
+    def get_path(self, env, goal, is_item = True, has_cart=False, has_basket=False):   
         # get observations from the environment
         player = env['observation']['players'][0]
-        
         start = (player['position'][0], player['position'][1])
         
-        path = self._astar(start, goal, is_item = True)
+        # The plan will be different if we have a cart
+        if has_cart:
+            path_dict = self._get_cart_path(start, goal)
+            
+        else:    
+            path_dict = self._grab_item("basket", start, goal)
         
-        if path == None:
-            return None
-
-        actions = self.from_path_to_actions(path)
-        
-        if actions == None:
-            return None
-
-        return self._build_state_action_dict(actions, path, details)
-
+        return path_dict
             
 def find_item_position(data, item_name):
     """
@@ -276,7 +410,8 @@ def find_item_position(data, item_name):
 
 
 if __name__ == "__main__":
-
+    action_commands = ['NOP', 'NORTH', 'SOUTH', 'EAST', 'WEST', 'TOGGLE_CART', 'INTERACT']
+    
     # Connect to Supermarket
     HOST = '127.0.0.1'
     PORT = 9000
@@ -291,10 +426,61 @@ if __name__ == "__main__":
     
     offset = 1
         
-    item = shopping_list[0]
+    item = "red bell pepper" #shopping_list[0]
     
     print("go for item: ", item)
     item_pos = find_item_position(game_state, item)
     print(item_pos)
-    path = player.get_path(game_state, (item_pos[0] + offset, item_pos[1]), has_basket=True)
+    # path = player.get_path(game_state, (item_pos[0] + offset, item_pos[1]), has_basket=True)
+    path = player.checkout(game_state)
     print(path)
+    
+    # cartReturns = [2, 18.5]
+    # basketReturns = [3.5, 18.5]
+    # registerReturns_1 = [2, 4.5]
+    # registerReturns_2 = [2, 9.5]
+
+    # if len(shopping_list) > 0:
+    #     player.perform_actions(player.from_path_to_actions(player._astar((player.player['position'][0], player.player['position'][1]),
+    #     (basketReturns[0], basketReturns[1] ), player.objs, 20, 25)))
+    #     player.face_item(basketReturns[0], basketReturns[1])
+    #     player.step('INTERACT')
+    #     player.step('INTERACT')
+    #     for item in shopping_list:
+    #         y_offset = 0
+    #         print("go for item: ", item)
+    #         item_pos = find_item_position(game_state, item)
+    #         if item != 'prepared foods' and item != 'fresh fish': 
+    #             item_pos = find_item_position(game_state, item)
+    #         else:
+    #             if item == 'prepared foods':
+    #                 item_pos = [18.25, 4.75]
+    #             else:
+    #                 item_pos = [18.25, 10.75]
+    #         if item == 'milk' or item == 'chocolate milk' or item == 'strawberry milk':
+    #             y_offset = 3
+    #         path  = player.astar((player.player['position'][0], player.player['position'][1]),
+    #                             (item_pos[0] + offset, item_pos[1] + y_offset), objs, 20, 25)
+    #         if path == None:
+    #             continue
+    #         player.perform_actions(player.from_path_to_actions(path))
+    #         player.face_item(item_pos[0] + offset, item_pos[1])
+          
+    #         for i in range(shopping_quant[shopping_list.index(item)]):
+    #             player.step('INTERACT')
+    #             if item == 'prepared foods' and item == 'fresh fish':
+    #                 player.step('INTERACT')
+                    
+    # # go to closer register
+    # if player.player['position'][1] < 7:
+    #     path = player.astar((player.player['position'][0], player.player['position'][1]),
+    #                         (registerReturns_1[0] + offset, registerReturns_1[1]), player.objs, 20, 25)
+    #     if path == None:
+    #         print("no path to register")
+    #     player.perform_actions(player.from_path_to_actions(path))
+    # else:
+    #     path = player.astar((player.player['position'][0], player.player['position'][1]),
+    #                         (registerReturns_2[0] + offset, registerReturns_2[1]), player.objs, 20, 25)
+    #     if path == None:
+    #         print("no path to register")
+    #     player.perform_actions(player.from_path_to_actions(path))
