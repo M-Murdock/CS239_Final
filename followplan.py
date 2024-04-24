@@ -114,8 +114,9 @@ def GetCurrentState(sock_game, playernumber):
     output = recv_socket_data(sock_game)  # get observation from env
     state = json.loads(output)
     if state["observation"]['baskets'] != []:
-        if state["observation"]['baskets']['owner'] == playernumber:
-            smallstate.append = "basket"       
+        for basket in list(state["observation"]['baskets']):
+            if basket['owner'] == playernumber:
+                smallstate = smallstate + "basket"       
     if state["observation"]['players'][playernumber]["curr_cart"] > 0:
         smallstate.join = "cart"
     for key in state["observation"]: 

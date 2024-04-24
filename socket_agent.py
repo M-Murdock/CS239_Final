@@ -7,31 +7,8 @@ import socket
 
 from env import SupermarketEnv
 from utils import recv_socket_data
+import followplan
 
-def GetCurrentState(sock_game, playernumber):
-    # get the current state of the environment
-    smallstate = ""
-    output = recv_socket_data(sock_game)  # get observation from env
-    state = json.loads(output)
-    if state["observation"]['baskets'] != []:
-        if state["observation"]['baskets']['owner'] == playernumber:
-            smallstate.append = "basket"       
-    if state["observation"]['players'][playernumber]["curr_cart"] > 0:
-        smallstate.join = "cart"
-    for key in state["observation"]: 
-     for key2 in state["observation"][key]: 
-        if key == "players":
-            for thisplayer in list(state["observation"][key]):
-                print("thisplayer: ", thisplayer)
-                print(thisplayer['index'])
-                if thisplayer['index'] == playernumber:
-                    print("found player")
-                    currentposition = str(key2["position"])
-                    print("currentposition: ", currentposition)
-                    smallstate = smallstate + currentposition
-                    print("smallstate: ", smallstate)
-    print("smallstate: ", smallstate)                
-    return smallstate
 
 if __name__ == "__main__":
 
@@ -54,15 +31,15 @@ if __name__ == "__main__":
         # action += " " + random.choice(action_commands)  # random action
 
         # assume this is the only agent in the game
-        action = "0 " + "SOUTH"
+        #action = "0 " + "SOUTH"
 
-        print("Sending action: ", action)
-        sock_game.send(str.encode(action))  # send action to env
+        #print("Sending action: ", action)
+        sock_game.send(str.encode("NOP"))  # send action to env
 
         #output = recv_socket_data(sock_game)  # get observation from env
         #output = json.loads(output)
 
-        state = GetCurrentState(sock_game, 0)
+        state = followplan.GetCurrentState(sock_game, 0)
 
         print("State: ", state)
         #print("Observations: ", output["observation"])
