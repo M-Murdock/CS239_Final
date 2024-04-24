@@ -1,4 +1,15 @@
+# Author: Mavis, Kat, Harsh, Ju-Hung, Luoyou
+
+import json
+import random
+import socket
+import time
+from utils import recv_socket_data
+from astar_path_planner import *
+
 target_locations = {
+    "entrance": [0.15, 15],
+    "counter": [3, 12],
     "cart": [1, 17.5],
     "milk": [5.5, 3.5],
     "chocolate milk": [9.5, 3.5],
@@ -25,7 +36,8 @@ target_locations = {
     "cucumber": [9.5, 23.5],
     "yellow bell pepper": [11.5, 23.5],
     "onion": [13.5, 23.5],
-    "fresh fish": [ 17.0, 15.0],
+    "prepared food": [18, 5],
+    "fresh fish": [17.0, 15.0],
     "checkout": [4.0, 11.5],
     "exit": [-0.5, 15.6],
     "corner_1": [18, 2],
@@ -33,12 +45,39 @@ target_locations = {
 }
 
 def get_item_location(item):
-    if item in target_locations:
-        return target_locations[item]
+    item_pos = target_locations[item]
+    if item != 'prepared foods' and item != 'fresh fish':
+        item_pos = target_locations[item]
     else:
-        return None
+        if item == 'prepared foods':
+            item_pos = [18.25, 4.75]
+        else:
+            item_pos = [18.25, 10.75]
+    if item == 'milk' or item == 'chocolate milk' or item == 'strawberry milk':
+        y_offset = 3
+    else:
+        y_offset = 0
 
-def wait_in_the_corner():
+    item_location = [item_pos[0] + offset, item_pos[1] + y_offset]
+    return item_location
+
+def wait_in_the_corner(player, player_number):
+    # takes in Agent object
+    # get current location
+    output = recv_socket_data(player.socket_game)  # assuming `socket_game` is the correct variable name
+    state = json.loads(output)
+    for player in state["observation"]["players"]:
+        if player['index'] == player_number:
+            location = player["position"]
+            break
+
+    # use astar to plan the path (trail ver, the agent only goes to top right corner)
+    path = player.astar((location[0], location[1]),
+                        (target_locations["corner_1"][0], target_locations["corner_1"][1]), objs, 20, 25)
+    player.perform_actions(player.from_path_to_actions(path))
+
+    # wait 5 sec
+    time.sleep(5)
 
     return None
 
