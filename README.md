@@ -4,6 +4,62 @@ Original developers: [Teah Markstone](https://github.com/teahmarkstone/) and [Da
 
 Additional developers: [Matthias Scheutz](https://github.com/mscheutz/)
 
+## Additions by Kat, Mavis, Harsh, Ju-Hung, and Luoyou
+
+### PathPlanner
+A PathPlanner object can be used to generate a plan from the agent's current position to a goal position. Call the `get_path` function and pass the game state and the goal location:
+
+```
+HOST = '127.0.0.1'
+PORT = 9000
+sock_game = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock_game.connect((HOST, PORT))
+state = recv_socket_data(sock_game)
+game_state = json.loads(state)
+
+planner = PathPlanner()
+path = planner.get_path(game_state, (goal_x , goal_y))
+```
+
+The function will return the path as a dictionary of states and actions. The keys are the agent's state and the values are the actions to be taken from each state. For example:
+
+```
+{'NORTH,(1.2, 15.6)': 'SOUTH', 'SOUTH,(1.2, 15.75)': 'SOUTH', ...}
+```
+
+If no valid path exists, `get_path` will return `None`
+
+In addition to the xy coordinates, the state also indicates the agent's direction (NSEW) and whether the agent is carrying a basket or cart. By default, the agent is carrying neither. Indicate the presence of a basket or cart by passing either of the following arguments:
+
+```
+path = planner.get_path(game_state, (goal_x, goal_y), has_basket=True)
+```
+Or
+```
+path = planner.get_path(game_state, (goal_x, goal_y), has_cart=True)
+```
+
+This will be reflected in the agent's state:
+```
+{'NORTH,basket(4.05, 10.65)': 'NOOP', ...}
+```
+
+If you want the agent to go to a location to grab an item, use the `grabbing_item` parameter. This indicates that the agent's last action should be 'INTERACT'. This is taken by default. However, you can also set `grabbing_item=False` to simply move the agent from one location to another:
+
+```
+path = planner.get_path(game_state, (goal_x, goal_y), grabbing_item=True)
+```
+
+For convenience, there are also functions for checkout and getting a basket/cart.. For example:
+
+```
+planner.checkout(game_state)
+planner.grab_cart_or_basket(game_state, kind="basket")
+```
+
+Behind the scenes, we create different paths depending on whether the agent is using a cart or basket. 
+
+
 ## Task setting
 
 An autonomous agent has to perform a shopping task in a simulated supermarket environment, gathering food items on a shopping list in a cart or basket, paying for them at the cash register and leaving the store with the purchased items.  The simulation is based on [Gymnasium].(https://gymnasium.farama.org/) and can be run manually with keyboard input, or with autonomous agents (in Python and Java) connected via a socket connection.
