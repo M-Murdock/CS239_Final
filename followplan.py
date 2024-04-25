@@ -5,7 +5,7 @@ import random
 import socket
 import time
 from utils import recv_socket_data
-from astar_path_planner import *
+#from astar_path_planner import *
 from navigation_utils import *
 
 target_locations = {
