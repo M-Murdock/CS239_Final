@@ -24,12 +24,12 @@ path = planner.get_path(game_state, (goal_x , goal_y))
 The function will return the path as a dictionary of states and actions. The keys are the agent's state and the values are the actions to be taken from each state. For example:
 
 ```
-{(1.2, 15.6): 'SOUTH', (1.2, 15.75): 'SOUTH', ...}
+{'NORTH,(1.2, 15.6)': 'SOUTH', 'SOUTH,(1.2, 15.75)': 'SOUTH', ...}
 ```
 
 If no valid path exists, `get_path` will return `None`
 
-In addition to the xy coordinates, the state also indicates whether the agent is carrying a basket or cart. By default, the agent is carrying neither. Indicate the presence of a basket or cart by passing either of the following arguments:
+In addition to the xy coordinates, the state also indicates the agent's direction (NSEW) and whether the agent is carrying a basket or cart. By default, the agent is carrying neither. Indicate the presence of a basket or cart by passing either of the following arguments:
 
 ```
 path = planner.get_path(game_state, (goal_x, goal_y), has_basket=True)
@@ -41,8 +41,24 @@ path = planner.get_path(game_state, (goal_x, goal_y), has_cart=True)
 
 This will be reflected in the agent's state:
 ```
-{'basket(4.05, 10.65)': 'NOOP', ...}
+{'NORTH,basket(4.05, 10.65)': 'NOOP', ...}
 ```
+
+If you want the agent to go to a location to grab an item, use the `grabbing_item` parameter. This indicates that the agent's last action should be 'INTERACT'. This is taken by default. However, you can also set `grabbing_item=False` to simply move the agent from one location to another:
+
+```
+path = planner.get_path(game_state, (goal_x, goal_y), grabbing_item=True)
+```
+
+For convenience, there are also functions for checkout and getting a basket/cart.. For example:
+
+```
+planner.checkout(game_state)
+planner.grab_cart_or_basket(game_state, kind="basket")
+```
+
+Behind the scenes, we create different paths depending on whether the agent is using a cart or basket. 
+
 
 ## Task setting
 

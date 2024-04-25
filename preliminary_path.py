@@ -19,6 +19,9 @@ class PathPlanner:
         self.basketReturns = [3.5, 18.5]
         self.registerReturns_1 = [2, 4.5]
         self.registerReturns_2 = [2, 9.5]
+        
+        self.game_state = None
+        self.details = ""
 
         self.objs = [
         {'height': 2.5, 'width': 3, 'position': [0.2, 4.5], 're_centered_position': [2.125, 5.75]},
@@ -119,8 +122,6 @@ class PathPlanner:
         
         return no_overlap # The function will return False if the rectangle is outside the map boundaries or intersects with the object.
 
-    
-
     def _hits_wall(self, x, y):
         wall_width = 0.4
         return not (y <= 2 or y + self.size[1] >= self.map_height - wall_width or \
@@ -147,8 +148,6 @@ class PathPlanner:
 
         else:
             return (abs(current[0] - goal[0]) < tolerance and abs(current[1] - goal[1]) < tolerance)
-
-
     """
     Takes a goal and performs A* algorithm to find shortest path from start to finish
     """
@@ -194,10 +193,12 @@ class PathPlanner:
     """
     Takes a path (given by A*) and converts it to a list of actions
     """
-    def from_path_to_actions(self, path):
+    def _get_actions(self, path, goal):
         # if the current direction is not the same as the direction of the first step in the path, add a TURN action
         # directions = [(0, step), (step, 0), (0, -step), (-step, 0)]  # Adjacent squares: N, E, S, W
         actions = []
+        
+        # navigate to the goal
         for i in range(len(path) - 1):
             x1, y1 = path[i]
             x2, y2 = path[i + 1]
@@ -209,6 +210,17 @@ class PathPlanner:
                 actions.append('NORTH')
             elif y2 > y1:
                 actions.append('SOUTH')
+                
+        # face the goal
+        x, y = goal
+        if path[-1][1] < y:
+            if not actions[-1] == 'NORTH':
+                actions.append('NORTH')
+        elif path[-1][1] > y:
+            if not actions[-1] == 'SOUTH':
+                actions.append('SOUTH')
+        else: 
+            actions.append("NOOP")
         
         return actions
     
@@ -216,18 +228,28 @@ class PathPlanner:
     """
     Using actions and path, build a dictionary of states and actions
     """
-    def _build_state_action_dict(self, actions, path, details):
+    def _build_state_action_dict(self, actions, path, last_action="NOOP"):
         print(len(actions))
         print(len(path))
+        
+        # keep track of the agent's direction
+        # (0=north, 1=south, 2=east, 3=west)
+        directions = ['NORTH', 'SOUTH', 'EAST', 'WEST']
+        last_direction = directions[self.game_state['observation']['players'][0]['direction']]
+            
         state_action_dict = {}
         for i in range(0, len(path)):
-            state_action_dict[details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = actions[i]
+            state_action_dict[last_direction + "," + self.details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = actions[i]
+            if (actions[i] == 'NORTH') or (actions[i] == 'SOUTH') or (actions[i] == 'EAST') or (actions[i] == 'WEST'): 
+                last_direction = actions[i]
+        
+        state_action_dict[last_direction + "," + self.details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = last_action
         
         return state_action_dict
     
     # returns the y coordinate of the midpoint of the agent's current aisle
     # this is used for determining where to leave the cart when getting something off the shelf
-    def _which_aisle(shelf, goal):
+    def _get_aisle_midpoint(shelf, goal):
         y = goal[1]
         
         # top aisle
@@ -250,23 +272,11 @@ class PathPlanner:
             mid = 23.5
             
         return (goal[0], mid)
-    
-    def _face_item(self, start, last_step, goal):
-        # NOTE: this only works for shelves
-        x, y = start
-        if goal[1] < y:
-            if not last_step == 'NORTH':
-                return 'NORTH'
-        elif goal[1] > y:
-            if not last_step == 'SOUTH':
-                return 'SOUTH'
-        return None
             
     # creates state-action dict to pick up basket or cart
-    def grab_cart_or_basket(self, env, kind="basket"): 
-        player = env['observation']['players'][0]
-        start = (player['position'][0], player['position'][1])
-        
+    def grab_cart_or_basket(self, env, kind="basket"):  
+        self.game_state = env 
+            
         if kind == "cart":
             goal_x = self.cartReturns[0] + 1
             goal_y = self.cartReturns[1]
@@ -274,25 +284,13 @@ class PathPlanner:
             goal_x = self.basketReturns[0] + 1
             goal_y = self.basketReturns[1]
             
-        path = self._astar(start, (goal_x, goal_y))     
-        if path == None:
-                return None
-        actions = self.from_path_to_actions(path) # get action to take from each xy position
-        if actions == None:
-            return None
-        # face = self._face_item(start, actions[-1], (goal_x, goal_y)) # face the shelf
-        # if face == None:
-        #     actions.append("INTERACT")
-        actions.append("INTERACT")
+        path_dict = self._goto(goal=(goal_x, goal_y), last_action="TOGGLE_CART")
         
-        state_act_dict = self._build_state_action_dict(actions, path, "") # make state-action dictionary
-        state_act_dict["" + str((round(goal_x, 3), round(goal_y, 3)))] = 'INTERACT' # take item from shelf NOTE: I may need to include direction in this as well
-        
-        return state_act_dict
+        return path_dict
     
     def checkout(self, env):
-        player = env['observation']['players'][0]
-        start = (player['position'][0], player['position'][1])
+        self.game_state = env
+        start = (self.game_state['observation']['players'][0]['position'][0], self.game_state['observation']['players'][0]['position'][1])
         
         if start[1] < 7:
             goal_x = self.registerReturns_1[0] + 1
@@ -301,91 +299,76 @@ class PathPlanner:
             goal_x = self.registerReturns_2[0] + 1
             goal_y = self.registerReturns_2[1]
   
-        path = self._astar(start, (goal_x, goal_y))     
-        if path == None:
-                return None
-        actions = self.from_path_to_actions(path) # get action to take from each xy position
-        if actions == None:
-            return None
-        # face = self._face_item(start, actions[-1], (goal_x, goal_y)) # face the shelf
-        # if face == None:
-        #     actions.append("INTERACT")
-        actions.append("INTERACT")
+        path_dict = self._goto(goal=(goal_x, goal_y), last_action='INTERACT')
+ 
+        return path_dict
         
-        state_act_dict = self._build_state_action_dict(actions, path, "") # make state-action dictionary
-        state_act_dict["" + str((round(goal_x, 3), round(goal_y, 3)))] = 'INTERACT' # take item from shelf NOTE: I may need to include direction in this as well
-        
-        return state_act_dict
-        
-        
-        
-    # returns the state-action dictionary for grabbing an item off the shelf
-    def _grab_item(self, details, start, goal):
+    def _goto(self, start=None, goal=None, last_action="NOOP"):
+        if goal == None:
+            return 
+        if start == None:
+            start = (self.game_state['observation']['players'][0]['position'][0], self.game_state['observation']['players'][0]['position'][1])
         
         path = self._astar(start, goal, is_item = True) # get xy coordinates
         if path == None:
-                return None
-        actions = self.from_path_to_actions(path) # get action to take from each xy position
+            return None
+        actions = self._get_actions(path, goal) # get action to take from each xy position
         if actions == None:
-                return None
-            
-        face = self._face_item(start, actions[-1], goal) # face the shelf
-        if face == None:
-            actions.append("NOOP")
-        else:
-            actions.append(face)
-            print("Facing shelf " + str(face))
-            
-            
-        state_act_dict = self._build_state_action_dict(actions, path, details) # make state-action dictionary
-        state_act_dict["" + str((round(goal[0], 3), round(goal[1], 3)))] = 'INTERACT' # take item from shelf NOTE: I may need to include direction in this as well
+            return None  
         
-        return state_act_dict
+        state_act_dict = self._build_state_action_dict(actions, path, last_action=last_action)
+        
+        return state_act_dict  
         
         
-    def _get_cart_path(self, start, goal):
+    def _get_path_with_cart(self, goal):
         self.size = [1.1, 1.15]
+        self.details = "cart"
         # get close to the shelf and leave the cart
-        leave_cart_loc = self._which_aisle(goal)
-        path1 = self._astar(start, leave_cart_loc, is_item = True)
-        if path1 == None:
-                return None
-        actions = self.from_path_to_actions(path1)
-        if actions == None:
-                return None
-        actions.append('TOGGLE_CART')
-        state_act_dict = self._build_state_action_dict(actions, path1, "cart")
-        
+        leave_cart_loc = self._get_aisle_midpoint(goal)
+        state_act_dict = self._goto(goal=leave_cart_loc, last_action='TOGGLE_CART')
         
         # grab the item
+        self.size = [0.6, 0.4]
+        self.details = ""
         try:
-            self.size = [0.6, 0.4]
-            state_act_dict.update(self._grab_item("", leave_cart_loc, goal))
+            state_act_dict.update(self._goto(start=leave_cart_loc, goal=goal, last_action='INTERACT'))
         except:
-            return None
+            return None 
         
         # return to cart
-        state_act_dict.update(self._grab_item("", goal, leave_cart_loc)) # drop the item in the cart
-        state_act_dict["cart" + str((round(leave_cart_loc[0], 3), round(leave_cart_loc[1], 3)))] = 'TOGGLE_CART' # grab the cart
+        try:
+            state_act_dict.update(self._goto(start=goal, goal=leave_cart_loc, last_action='TOGGLE_CART')) # drop the item in the cart
+        except:
+            return None
         self.size = [1.1, 1.15]
+        self.details = "cart"
         
         return state_act_dict
+    
     # -----------------------------------------
     """
     Public function for generating path from start to goal. Returns the path as a dictionary of states and actions
     """
-    def get_path(self, env, goal, is_item = True, has_cart=False, has_basket=False):   
+    def get_path(self, env, goal, last_action="NOOP", has_basket=True, has_cart=False, grabbing_item=True):   
         # get observations from the environment
-        player = env['observation']['players'][0]
-        start = (player['position'][0], player['position'][1])
+        self.game_state = env
+        if has_basket:
+            self.details = "basket"
+        elif has_cart:
+            self.details = "cart"
         
         # The plan will be different if we have a cart
-        if has_cart:
-            path_dict = self._get_cart_path(start, goal)
+        if self.details == "cart":
+            if grabbing_item:
+                path_dict = self._get_path_with_cart(goal)
+            else:
+                self.size = [1.1, 1.15]
+                path_dict = self._goto(goal=goal, last_action=last_action)
+                
+        else:
+            path_dict = self._goto(goal=goal, last_action=last_action)
             
-        else:    
-            path_dict = self._grab_item("basket", start, goal)
-        
         return path_dict
             
 def find_item_position(data, item_name):
@@ -431,8 +414,9 @@ if __name__ == "__main__":
     print("go for item: ", item)
     item_pos = find_item_position(game_state, item)
     print(item_pos)
-    # path = player.get_path(game_state, (item_pos[0] + offset, item_pos[1]), has_basket=True)
-    path = player.checkout(game_state)
+    path = player.get_path(game_state, (item_pos[0] + offset, item_pos[1]), has_cart=True, grabbing_item=False)
+    # path = player.checkout(game_state)
+    # path = player.grab_cart_or_basket(game_state)
     print(path)
     
     # cartReturns = [2, 18.5]
