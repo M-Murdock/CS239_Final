@@ -6,6 +6,7 @@ import socket
 import time
 from utils import recv_socket_data
 from astar_path_planner import *
+from navigation_utils import *
 
 target_locations = {
     "entrance": [0.15, 15],
@@ -108,11 +109,18 @@ def get_next_shopping_item(state):
 
 
 
-def GetCurrentState(sock_game, playernumber):
+def GetCurrentState(sock_game, playernumber): 
+##FIXME get direction also 
+##  example state {'NORTH,basket(4.05, 10.65)': 'NOOP', ...}
+## 0: North 1: south 2: east 3: west
+
     # get the current state of the environment
     smallstate = ""
+    directions = [NORTH, SOUTH, EAST, WEST]
     output = recv_socket_data(sock_game)  # get observation from env
     state = json.loads(output)
+    directionfacing = state["observation"]['players'][playernumber]["direction"]
+    direction = directions[directionfacing]  
     if state["observation"]['baskets'] != []:
         for basket in list(state["observation"]['baskets']):
             if basket['owner'] == playernumber:
@@ -130,7 +138,8 @@ def GetCurrentState(sock_game, playernumber):
                     currentposition = str(key2["position"])
                     print("currentposition: ", currentposition)
                     smallstate = smallstate + currentposition
-                    
+
+
     print("smallstate: ", smallstate)                
     return smallstate
 
@@ -146,7 +155,7 @@ def ExecutePlanToItem(preliminarypath, sock_game):
         state = GetCurrentState()
         polllength = 3
         if pollingcounter > polllength:
-            CheckPathBlocked(preliminarypath, sock_game)
+            path_blocked(preliminarypath, sock_game)
             pollingcounter = 0 # reset the counter
         for key in preliminarypath:
             if state == key:
