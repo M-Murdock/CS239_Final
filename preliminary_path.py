@@ -243,7 +243,7 @@ class PathPlanner:
             if (actions[i] == 'NORTH') or (actions[i] == 'SOUTH') or (actions[i] == 'EAST') or (actions[i] == 'WEST'): 
                 last_direction = actions[i]
         
-        state_action_dict[last_direction + "," + self.details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = last_action
+        state_action_dict["END," + last_direction + "," + self.details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = last_action
         
         return state_action_dict
     

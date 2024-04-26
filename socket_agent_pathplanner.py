@@ -18,14 +18,18 @@ game_state = json.loads(state)
 shopping_list = game_state['observation']['players'][0]['shopping_list']
 shopping_quant = game_state['observation']['players'][0]['list_quant']
 player = preliminary_path.PathPlanner()
+print("Created Preliminary Path")
 itemcount = len(shopping_list)
 
 if itemcount > 6:
+    print("More than 6")
     path = player.grab_cart_or_basket(game_state, kind="cart")
     followplan.ExecutePlanToItem(path, sock_game)
     has_cart = True
 else:
+    print("less than 6")
     path = player.grab_cart_or_basket(game_state, kind="basket")
+    print("got the path")
     followplan.ExecutePlanToItem(path, sock_game)
     has_cart = False
 

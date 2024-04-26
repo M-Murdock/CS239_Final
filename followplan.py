@@ -116,7 +116,7 @@ def GetCurrentState(sock_game, playernumber):
 
     # get the current state of the environment
     smallstate = ""
-    directions = [NORTH, SOUTH, EAST, WEST]
+    directions = ['NORTH', 'SOUTH', 'EAST', 'WEST']
     output = recv_socket_data(sock_game)  # get observation from env
     state = json.loads(output)
     directionfacing = state["observation"]['players'][playernumber]["direction"]
@@ -152,12 +152,17 @@ def ExecutePlanToItem(preliminarypath, sock_game):
     # if not, return an error
     pollingcounter = 0
     while len(preliminarypath) > 0:
-        state = GetCurrentState()
+        # print("path length is " + str(preliminarypath))
+        state = GetCurrentState(sock_game, 0) # NOTE: this is only for player 0
         polllength = 3
+        print("poll length 3")
         if pollingcounter > polllength:
             path_blocked(preliminarypath, sock_game)
             pollingcounter = 0 # reset the counter
+            print("resetting")
+        print("about to get the key")
         for key in preliminarypath:
+            print("the key is " + str(key))
             if state == key:
                 action = preliminarypath[key]
                 actionok = checknorms(action)
