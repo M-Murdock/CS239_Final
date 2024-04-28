@@ -39,6 +39,7 @@ else:
 
 while len(shopping_list) > 0:
     for item in shopping_list:
+        print("getting shopping item:", item)
         item_pos = game_state['observation']['items'][item]
         offset = 1
         path = player.get_path(game_state, (item_pos[0] + offset, item_pos[1]), has_cart, grabbing_item=False)
