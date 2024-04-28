@@ -87,10 +87,10 @@ def euclidean_distance(pos1, pos2):
     return ((pos1[0] - pos2[0])**2 + (pos1[1] - pos2[1])**2)**0.5
 
 
-def get_next_shopping_item(state):
-    shopping_list = state['observation']['players'][0]['shopping_list']
-    shopping_quants = state['observation']['players'][0]['list_quant']
-    user_location = state['observation']['players'][0]['position']
+def get_next_shopping_item(observation):
+    shopping_list = observation['observation']['players'][0]['shopping_list']
+    shopping_quants = observation['observation']['players'][0]['list_quant']
+    user_location = observation['observation']['players'][0]['position']
 
     quant_dict = dict(zip(shopping_list, shopping_quants))
 
@@ -105,7 +105,7 @@ def get_next_shopping_item(state):
             closest_item = item
     
     # return closest_item
-    return tuple(closest_item, quant_dict[closest_item])
+    return (closest_item, quant_dict[closest_item])
 
 
 
@@ -126,7 +126,7 @@ def GetCurrentState(observation, playernumber):
             print("direction: ", direction) 
             state = state + direction + ","
        
-    if state["observation"]['baskets'] != []:
+    if observation["observation"]['baskets'] != []:
         for basket in list(observation["observation"]['baskets']):
             if basket['owner'] == playernumber:
                 state = state + "basket,"       
@@ -160,9 +160,13 @@ def ExecutePlanToItem(path, sock_game, playernumber):
     pollingcounter = 0
     while len(path) > 0:
         print("path length is ", len(path))
+        sock_game.send(str.encode("0 NOP"))
+        print("sent NOP to environment")
         output = recv_socket_data(sock_game)
+        print("got output from environment")
         observation = json.loads(output) # get new state
-        print("got state back from environment")
+        print("got formatted observation back from environment")
+        print("observation: ", observation)
         state = GetCurrentState(observation, playernumber) 
         polllength = 3
         print("poll length 3")
@@ -194,10 +198,10 @@ def ExecutePlanToItem(path, sock_game, playernumber):
                     return state, path
                 else:
                     print("Action not allowed")
-                    return "Error: action not allowed"
+                    return "ERROR"
             else:   
                 print("State not in path")
-                return "Error: state not in path, need to replan"
+                return "ERROR"
         
 def checknorms(action):
     # use norm.py to check if the action is allowed

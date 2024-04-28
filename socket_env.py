@@ -367,7 +367,7 @@ if __name__ == "__main__":
                                     action_id = ACTION_COMMANDS.index(command)
                                     curr_action[player] = (action_id, arg)
                                     should_perform_action = True
-                                    # print(action)
+                                    print(action_id)
                                 else:
                                     info = {'result': False, 'step_cost': 0.0, 'message': 'Invalid Command'}
                                     json_to_send = get_action_json(command, env, None, 0., False, info, None)
