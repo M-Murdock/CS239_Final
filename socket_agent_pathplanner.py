@@ -18,6 +18,8 @@ print("Which player number are you?")
 playernumber = int(input())
 state = recv_socket_data(sock_game)
 game_state = json.loads(state)
+print("got state for the first time")
+
 shopping_list = game_state['observation']['players'][playernumber]['shopping_list']
 shopping_quant = game_state['observation']['players'][playernumber]['list_quant']
 player = preliminary_path.PathPlanner()
@@ -38,13 +40,9 @@ else:
     has_cart = False
 
 while len(shopping_list) > 0:
-    for item in shopping_list:
-        item_pos = game_state['observation']['items'][item]
-        offset = 1
-        path = player.get_path(game_state, (item_pos[0] + offset, item_pos[1]), has_cart, grabbing_item=False)
-        followplan.ExecutePlanToItem(path, sock_game, playernumber)
-
-
+    nextitem = followplan.get_next_shopping_item(state)
+    path = player.get_path_to_item(game_state, nextitem, has_cart)
+    followplan.ExecutePlanToItem(path, sock_game, playernumber)
     
 path = player.checkout(game_state)
 followplan.ExecutePlanToItem(path, sock_game)

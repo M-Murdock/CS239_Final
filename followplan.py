@@ -109,38 +109,33 @@ def get_next_shopping_item(state):
 
 
 
-def GetCurrentState(sock_game, playernumber): 
+def GetCurrentState(observation, playernumber): 
 ##  example state {'NORTH,basket(4.05, 10.65)': 'NOOP', ...}
 ## 0: North 1: south 2: east 3: west
 
     # get the current state of the environment
-    smallstate = ""
+    state = ""
     directions = ['NORTH', 'SOUTH', 'EAST', 'WEST']
-    print("getting current state")
-    output = recv_socket_data(sock_game)  # get observation from env
-    print("got observation")
-    #print("output: ", output)
-    state = json.loads(output)
     print("state: ", state)
 
-    for player in state["observation"]["players"]:
+    for player in observation["observation"]["players"]:
         if player['index'] == playernumber:
             directionfacing = player["direction"]
             print("directionfacing: ", directionfacing)
             direction = directions[directionfacing]  
             print("direction: ", direction) 
-            smallstate = smallstate + direction + ","
+            state = state + direction + ","
        
     if state["observation"]['baskets'] != []:
-        for basket in list(state["observation"]['baskets']):
+        for basket in list(observation["observation"]['baskets']):
             if basket['owner'] == playernumber:
-                smallstate = smallstate + "basket,"       
-    if state["observation"]['players'][playernumber]["curr_cart"] > 0:
-        smallstate.join = "cart"
-    for key in state["observation"]: 
-        for key2 in state["observation"][key]: 
+                state = state + "basket,"       
+    if observation["observation"]['players'][playernumber]["curr_cart"] > 0:
+        state.join = "cart"
+    for key in observation["observation"]: 
+        for key2 in observation["observation"][key]: 
             if key == "players":
-                for thisplayer in list(state["observation"][key]):
+                for thisplayer in list(observation["observation"][key]):
                     print("thisplayer: ", thisplayer)
                     print(thisplayer['index'])
                     if thisplayer['index'] == playernumber:
@@ -149,37 +144,40 @@ def GetCurrentState(sock_game, playernumber):
                         currentposition = currentposition.replace("[", "(")
                         currentposition = currentposition.replace("]", ")")
                         print("currentposition: ", currentposition)
-                        smallstate = smallstate + currentposition
+                        state = state + currentposition
 
 
-    print("smallstate: ", smallstate)                
-    return smallstate
+    print("state: ", state)                
+    return state
 
 
-def ExecutePlanToItem(preliminarypath, sock_game, playernumber): 
+def ExecutePlanToItem(path, sock_game, playernumber): 
     # the path is a dictionary of states and actions
     # get the current state from the environment
     # find out if the current state is any of the states in the path
     # if so, execute the action
     # if not, return an error
     pollingcounter = 0
-    while len(preliminarypath) > 0:
-        print("path length is ", len(preliminarypath))
-        state = GetCurrentState(sock_game, playernumber) 
+    while len(path) > 0:
+        print("path length is ", len(path))
+        output = recv_socket_data(sock_game)
+        observation = json.loads(output) # get new state
+        print("got state back from environment")
+        state = GetCurrentState(observation, playernumber) 
         polllength = 3
         print("poll length 3")
         if pollingcounter > polllength:
-            path_blocked(preliminarypath, sock_game)
+            path_blocked(path, state)
             pollingcounter = 0 # reset the counter
             print("resetting")
-        print("about to get the key")
-        for key in preliminarypath:
+        print("checking for end of path")
+        for key in path:
             if key.find("END") != -1: # if the key includes "END" then we are at the end of the path
                 print("End of path")
                 return "End of path"
             print("the key is " + str(key))
             if state == key:
-                action = preliminarypath[key]
+                action = path[key]
                 actionok = checknorms(action)
                 if actionok == True:
                     ## actually take the action in the environment
@@ -187,10 +185,13 @@ def ExecutePlanToItem(preliminarypath, sock_game, playernumber):
                     formataction = str(playernumber) + " " + action
                     print("formataction: ", formataction)
                     sock_game.send(str.encode(formataction))  # send action to env
-        
-                    preliminarypath.pop(key)
+                    print("sent action to environment")
+                    output = recv_socket_data(sock_game)
+                    state = json.loads(output) # get new state
+                    print("got state back from environment")
+                    # do not remove the state from the environment in case we return to it, e.g. in the stochastic action scenario
                     pollingcounter = pollingcounter + 1 # increment the stepcount
-                    break
+                    return state, path
                 else:
                     print("Action not allowed")
                     return "Error: action not allowed"

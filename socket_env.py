@@ -161,6 +161,7 @@ def is_single_player(command_):
 
 
 def get_player_and_command(command_):
+    print("received:", command_)
     split_command = command_.split(' ')
     if len(split_command) == 1:
         return 0, split_command[0], 0
