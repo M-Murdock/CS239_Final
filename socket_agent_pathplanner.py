@@ -80,7 +80,14 @@ if itemcount > 6:
         print("got the path to cart")
         #print("Path: ", path)
         results = followplan.ExecutePlanToItem(path, sock_game, playernumber)
+        ## Updating game_state from environment
+        sock_game.send(str.encode("0 NOP"))
+        print("sent NOP to environment")
+        output = recv_socket_data(sock_game)
+        print("got output from environment")
+        game_state = json.loads(output) # get new state
         state = followplan.GetCurrentState(game_state, playernumber)
+        print("state: ", state)
 
     has_cart = True
     print("Got the cart")
@@ -93,7 +100,16 @@ else:
         print("got the path to basket")
         #print("Path: ", path)
         results = followplan.ExecutePlanToItem(path, sock_game, playernumber)
+
+
+        ## Updating game_state from environment
+        sock_game.send(str.encode("0 NOP"))
+        print("sent NOP to environment")
+        output = recv_socket_data(sock_game)
+        print("got output from environment")
+        game_state = json.loads(output) # get new state
         state = followplan.GetCurrentState(game_state, playernumber)
+        print("state: ", state)
     has_cart = False
     print("Got the basket")
 ## end of the "do once" section
@@ -102,11 +118,15 @@ else:
 while len(shopping_list) > 0:
     print("Shopping list: ", shopping_list)
     print("Shopping quant: ", shopping_quant)
+
+    ## Updating game_state from environment
     sock_game.send(str.encode("0 NOP"))
     print("sent NOP to environment")
     output = recv_socket_data(sock_game)
     print("got output from environment")
     game_state = json.loads(output) # get new state
+
+
     print("about to get the next shopping item")
     nextitem = followplan.get_next_shopping_item(game_state, playernumber, shopping_list, shopping_quant)
     print("got the next shopping item")
