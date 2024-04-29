@@ -338,7 +338,7 @@ class PathPlanner:
     def checkout(self, env):
         self.game_state = env
         start = (self.game_state['observation']['players'][0]['position'][0], self.game_state['observation']['players'][0]['position'][1])
-        
+        print("start: ", start)
         if start[1] < 7:
             goal_x = self.registerReturns_1[0] + 1
             goal_y = self.registerReturns_1[1]
@@ -347,6 +347,7 @@ class PathPlanner:
             goal_y = self.registerReturns_2[1]
   
         path_dict = self._goto(goal=(goal_x, goal_y), last_action='INTERACT')
+        print("path_dict: ", path_dict)
  
         return path_dict
         
