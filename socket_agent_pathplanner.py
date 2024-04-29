@@ -78,7 +78,7 @@ if itemcount > 6:
     while state.find("cart") == -1:
         path = player.grab_cart_or_basket(game_state, kind="cart")
         print("got the path to cart")
-        print("Path: ", path)
+        #print("Path: ", path)
         results = followplan.ExecutePlanToItem(path, sock_game, playernumber)
     has_cart = True
     print("Got the cart")
@@ -89,7 +89,7 @@ else:
     while state.find("cart") == -1:
         path = player.grab_cart_or_basket(game_state, kind="basket")
         print("got the path to basket")
-        print("Path: ", path)
+        #print("Path: ", path)
         results = followplan.ExecutePlanToItem(path, sock_game, playernumber)
     has_cart = False
     print("Got the basket")

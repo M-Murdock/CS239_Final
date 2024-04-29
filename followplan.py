@@ -120,9 +120,9 @@ def GetCurrentState(game_state, playernumber):
     for player in game_state["observation"]["players"]:
         if player['index'] == playernumber:
             directionfacing = player["direction"]
-            print("directionfacing: ", directionfacing)
+            #print("directionfacing: ", directionfacing)
             direction = directions[directionfacing]  
-            print("direction: ", direction) 
+            #print("direction: ", direction) 
             state = state + direction + ","
 
     if game_state["observation"]['baskets'] != []:
@@ -135,14 +135,15 @@ def GetCurrentState(game_state, playernumber):
         for key2 in game_state["observation"][key]: 
             if key == "players":
                 for thisplayer in list(game_state["observation"][key]):
-                    print("thisplayer: ", thisplayer)
-                    print(thisplayer['index'])
+                    #print("thisplayer: ", thisplayer)
+                    #print(thisplayer['index'])
                     if thisplayer['index'] == playernumber:
-                        print("found player")
-                        currentposition = str(key2["position"])
+                        #print("found player")
+                        currentposition = round(key2["position"][0],3), round(key2["position"][1],3) # round to 3 decimal places
+                        currentposition = str(currentposition)
                         currentposition = currentposition.replace("[", "(")
                         currentposition = currentposition.replace("]", ")")
-                        print("currentposition: ", currentposition)
+                        #print("currentposition: ", currentposition)
                         state = state + currentposition
 
 
@@ -162,11 +163,11 @@ def ExecutePlanToItem(path, sock_game, playernumber):
     while results != "SUCCESS":
         print("path is ", path)
         sock_game.send(str.encode("0 NOP"))
-        print("sent NOP to environment in ExecutePlanToItem")
+        #print("sent NOP to environment in ExecutePlanToItem")
         output = recv_socket_data(sock_game)
-        print("got output from environment")
+        #print("got output from environment")
         game_state = json.loads(output) # get new state
-        print("got formatted observation back from environment in ExecutePlanToItem")
+        #print("got formatted observation back from environment in ExecutePlanToItem")
         #print("observation: ", observation)
         state = GetCurrentState(game_state, playernumber) 
         polllength = 3
@@ -179,10 +180,11 @@ def ExecutePlanToItem(path, sock_game, playernumber):
             pollingcounter = 0 # reset the counter
             print("resetting")
         for key in path:
-            print("the key we are checking is " + str(key))
+            print("the key we are checking is " + key)
+            print("pollingcounter: ", pollingcounter)
             if state.find(key) != -1: # if the state is in the path (usually it will be the whole path, 
                                         # but not when END is included in the action)
-                print("checking for end of path")
+                print("matched key.  checking for end of path")
                 if key.find("END") != -1: # if the action includes "END" then we are at the end of path
                     print("End of path")
                     endpath = True
@@ -206,13 +208,13 @@ def ExecutePlanToItem(path, sock_game, playernumber):
                     pollingcounter = pollingcounter + 1 # increment the stepcount
                     if endpath == True:
                         results = "SUCCESS"
+                        return results
                 else:
                     print("Action not allowed")
                     return "ERROR"
-            else:   
-                print("State not in path")
-                return "ERROR"
-            return results
+        # if it never finds they key in the path, something is wrong -- re-plan    
+        print("State not in path")
+        return "ERROR"
         
 def checknorms(action):
     # use norm.py to check if the action is allowed
