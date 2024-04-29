@@ -68,10 +68,9 @@ while steps < 10:
 
 shopping_list = game_state['observation']['players'][playernumber]['shopping_list']
 for i in range(len(shopping_list)):
-    print(i, shopping_list[i])
     if shopping_list[i] == "prepared foods":
         print("removing prepared foods")
-        shopping_list.remove(shopping_list[i])
+        shopping_list.remove('prepared foods')
 
 shopping_quant = game_state['observation']['players'][playernumber]['list_quant']
 player = preliminary_path.PathPlanner()
@@ -151,14 +150,20 @@ while len(shopping_list) > 0:
         print("next item is ", nextitem)
         shopping_list.remove(nextitem[0])
         shopping_quant.pop(0)
-    
+
+sock_game.send(str.encode("0 NOP"))
+output = recv_socket_data(sock_game)
+game_state = json.loads(output) # get new state   
 path = player.checkout(game_state)
 # go to the checkout
 
 status = followplan.ExecutePlanToItem(path, sock_game, playernumber)
 print("checkout status is ", status)
 while status != "SUCCESS":
+    path = player.checkout(game_state)
     status = followplan.ExecutePlanToItem(path, sock_game, playernumber)
     print("checkout status is ", status)
+
+    
 sock_game.close()
      
