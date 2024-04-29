@@ -240,8 +240,8 @@ class PathPlanner:
     Using actions and path, build a dictionary of states and actions
     """
     def _build_state_action_dict(self, actions, path, last_action="NOOP", last_direction=None):
-        print(len(actions))
-        print(len(path))
+        #print(len(actions))
+        #print(len(path))
         
         if not self.details == "":
             self.details = self.details + ","
