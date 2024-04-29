@@ -37,7 +37,7 @@ target_locations = {
     "cucumber": [9.5, 23.5],
     "yellow bell pepper": [11.5, 23.5],
     "onion": [13.5, 23.5],
-    "prepared food": [18, 5],
+    "prepared foods": [18, 5],
     "fresh fish": [17.0, 15.0],
     "checkout": [4.0, 11.5],
     "exit": [-0.5, 15.6],

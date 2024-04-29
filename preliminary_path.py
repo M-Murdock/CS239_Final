@@ -144,6 +144,7 @@ class PathPlanner:
         """Check if the current position is within tolerance of the goal position."""
         if is_item is not None:
             tolerance = 0.6
+            #print(current, goal)
             return (abs(current[0] - goal[0]) < 0.65 and abs(current[1] - goal[1]) < 0.45)
 
         else:

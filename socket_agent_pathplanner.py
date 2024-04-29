@@ -7,6 +7,42 @@ from utils import recv_socket_data
 import followplan   
 import preliminary_path
 
+target_locations = {
+    "entrance": [0.15, 15],
+    "counter": [3, 12],
+    "cart": [1, 17.5],
+    "milk": [5.5, 3.5],
+    "chocolate milk": [9.5, 3.5],
+    "strawberry milk": [13.5, 3.5],
+    "apples": [5.5, 7.5],
+    "oranges": [7.5, 7.5],
+    "banana": [9.5, 7.5],
+    "strawberry": [11.5, 7.5],
+    "raspberry": [13.5, 7.5],
+    "sausage": [5.5, 11.5],
+    "steak": [7.5, 11.5],
+    "chicken": [11.5, 11.5],
+    "ham": [13.5, 11.5],
+    "brie cheese": [5.5, 15.5],
+    "swiss cheese": [7.5, 15.5],
+    "cheese wheel": [9.5, 15.5],
+    "garlic": [5.5, 19.5],
+    "leek": [7.5, 19.5],
+    "red bell pepper": [9.5, 19.5],
+    "carrot": [11.5, 19.5],
+    "lettuce": [13.5, 19.5],
+    "avocado": [5.5, 23.5],
+    "broccoli": [7.5, 23.5],
+    "cucumber": [9.5, 23.5],
+    "yellow bell pepper": [11.5, 23.5],
+    "onion": [13.5, 23.5],
+    "prepared food": [18, 5],
+    "fresh fish": [17.0, 15.0],
+    "checkout": [4.0, 11.5],
+    "exit": [-0.5, 15.6],
+    "corner_1": [18, 2],
+    "corner_2": [18, 22]
+}
 
 HOST = '127.0.0.1'
 PORT = 9000
@@ -55,7 +91,8 @@ while len(shopping_list) > 0:
     print("Shopping list: ", shopping_list)
     print("Shopping quant: ", shopping_quant)
     nextitem = followplan.get_next_shopping_item(state)
-    path = player.get_path(game_state, nextitem, has_cart)
+    nextitemPos = target_locations[nextitem[0]]
+    path = player.get_path(game_state, nextitemPos, has_cart)
     # now take the path and excute it
     state, path = followplan.ExecutePlanToItem(path, sock_game, playernumber)
     if state == "ERROR":
