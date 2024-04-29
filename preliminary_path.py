@@ -202,6 +202,9 @@ class PathPlanner:
         # if the current direction is not the same as the direction of the first step in the path, add a TURN action
         # directions = [(0, step), (step, 0), (0, -step), (-step, 0)]  # Adjacent squares: N, E, S, W
         actions = []
+        if path == None:
+            print("NO PATH FOUND")
+            return
         
         # navigate to the goal
         for i in range(len(path) - 1):
