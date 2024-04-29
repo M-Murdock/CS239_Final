@@ -183,7 +183,7 @@ def ExecutePlanToItem(path, sock_game, playernumber):
         for key in path:
             print("the key we are checking is " + key)
             print("pollingcounter: ", pollingcounter)
-            if state.find(key) != -1: # if the state is in the path (usually it will be the whole path, 
+            if key.find(state) != -1: # if the state is in the path (usually it will be the whole path, 
                                         # but not when END is included in the action)
                 print("matched key.  checking for end of path")
                 if key.find("END") != -1: # if the action includes "END" then we are at the end of path
