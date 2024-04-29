@@ -36,10 +36,10 @@ if __name__ == "__main__":
         #print("Sending action: ", action)
         sock_game.send(str.encode("NOP"))  # send action to env
 
-        #output = recv_socket_data(sock_game)  # get observation from env
-        #output = json.loads(output)
+        output = recv_socket_data(sock_game)  # get observation from env
+        game_state = json.loads(output)
 
-        state = followplan.GetCurrentState(sock_game, 0)
+        state = followplan.GetCurrentState(game_state, 0)
 
         print("State: ", state)
         #print("Observations: ", output["observation"])

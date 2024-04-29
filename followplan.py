@@ -161,7 +161,7 @@ def ExecutePlanToItem(path, sock_game, playernumber):
     results = ""
     endpath = False
     while results != "SUCCESS":
-        print("path is ", path)
+        #print("path is ", path)
         sock_game.send(str.encode("0 NOP"))
         #print("sent NOP to environment in ExecutePlanToItem")
         output = recv_socket_data(sock_game)
@@ -173,11 +173,12 @@ def ExecutePlanToItem(path, sock_game, playernumber):
         polllength = 3
         print("poll length 3")
         if pollingcounter > polllength:
+            print("checking path for blockage")
+            pollingcounter = 0 # reset the counter
             isblocked = path_blocked(path, state)
             if isblocked == True:
                 print("path is blocked")
                 return "ERROR"
-            pollingcounter = 0 # reset the counter
             print("resetting")
         for key in path:
             print("the key we are checking is " + key)
