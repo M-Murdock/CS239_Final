@@ -320,7 +320,7 @@ class PathPlanner:
         return (goal[0], mid)
             
     # creates state-action dict to pick up basket or cart
-    def grab_cart_or_basket(self, env, kind="basket"):  
+    def grab_cart_or_basket(self, env, playernumber, kind="basket"):  
         self.game_state = env 
             
         if kind == "cart":
@@ -332,13 +332,17 @@ class PathPlanner:
             goal_y = self.basketReturns[1]
             
         
-        path_dict = self._goto(goal=(goal_x, goal_y), last_action="INTERACT", last_direction="SOUTH")
+        path_dict = self._goto(playernumber, env, goal=(goal_x, goal_y), last_action="INTERACT", last_direction="SOUTH")
         #print("RETURNING THE DICTIONARY")
         return path_dict
     
-    def checkout(self, env):
+    def checkout(self, env, playernumber=0):
         self.game_state = env
-        start = (self.game_state['observation']['players'][0]['position'][0], self.game_state['observation']['players'][0]['position'][1])
+        #FIXME = make work as not player 0
+        for player in self.game_state["observation"]["players"]:
+            if player['index'] == playernumber:
+                user_location = player['position']
+        start = (user_location[0], user_location[1])
         print("start: ", start)
         if start[1] < 7:
             goal_x = self.registerReturns_1[0] + 1
@@ -347,16 +351,19 @@ class PathPlanner:
             goal_x = self.registerReturns_2[0] + 1
             goal_y = self.registerReturns_2[1]
   
-        path_dict = self._goto(goal=(goal_x, goal_y), last_action='INTERACT')
+        path_dict = self._goto(playernumber, env, goal=(goal_x, goal_y), last_action='INTERACT')
         print("path_dict: ", path_dict)
  
         return path_dict
         
-    def _goto(self, start=None, goal=None, last_action="NOOP", last_direction=None):
+    def _goto(self, playernumber, game_state, start=None, goal=None, last_action="NOOP", last_direction=None):
         if goal == None:
             return None
         if start == None:
-            start = (self.game_state['observation']['players'][0]['position'][0], self.game_state['observation']['players'][0]['position'][1])
+            for player in game_state["observation"]["players"]:
+                if player['index'] == playernumber:
+                    user_location = player['position']
+                    start = (user_location[0], user_location[1])
         
         path = self._astar(start, goal, is_item = True) # get xy coordinates
         if path == None:
@@ -371,12 +378,12 @@ class PathPlanner:
         return state_act_dict  
         
         
-    def _get_path_with_cart(self, goal):
+    def _get_path_with_cart(self, goal, playernumber=0):
         self.size = [1.1, 1.15]
         self.details = "cart"
         # get close to the shelf and leave the cart
         leave_cart_loc = self._get_aisle_midpoint(goal)
-        state_act_dict = self._goto(goal=leave_cart_loc, last_action='TOGGLE_CART')
+        state_act_dict = self._goto(playernumber, goal=leave_cart_loc, last_action='TOGGLE_CART')
         
         # grab the item
         self.size = [0.6, 0.4]
@@ -400,7 +407,7 @@ class PathPlanner:
     """
     Public function for generating path from start to goal. Returns the path as a dictionary of states and actions
     """
-    def get_path(self, env, goal, last_action="INTERACT", has_basket=True, has_cart=False, grabbing_item=True):   
+    def get_path(self, env, goal, playernumber, last_action="INTERACT", has_basket=True, has_cart=False, grabbing_item=True):   
         print("getting path to goal: ", goal)
         # get observations from the environment
         self.game_state = env
@@ -412,13 +419,13 @@ class PathPlanner:
         # The plan will be different if we have a cart
         if self.details == "cart":
             if grabbing_item:
-                path_dict = self._get_path_with_cart(goal)
+                path_dict = self._get_path_with_cart(goal, playernumber)
             else:
                 self.size = [1.1, 1.15]
                 path_dict = self._goto(goal=goal, last_action=last_action)
                 
         else:
-            path_dict = self._goto(goal=goal, last_action=last_action)
+            path_dict = self._goto(playernumber, env, goal=goal, last_action=last_action)
             
         return path_dict
             

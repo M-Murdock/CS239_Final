@@ -71,6 +71,7 @@ for i in range(len(shopping_list)):
     if shopping_list[i] == "prepared foods":
         print("removing prepared foods")
         shopping_list.remove('prepared foods')
+        break
 
 shopping_quant = game_state['observation']['players'][playernumber]['list_quant']
 player = preliminary_path.PathPlanner()
@@ -81,7 +82,7 @@ if itemcount > 6:
     print("More than 6, get a cart")
     state = followplan.GetCurrentState(game_state, playernumber)
     while state.find("cart") == -1:
-        path = player.grab_cart_or_basket(game_state, kind="cart")
+        path = player.grab_cart_or_basket(game_state, playernumber, kind="cart")
         print("got the path to cart")
         #print("Path: ", path)
         results = followplan.ExecutePlanToItem(path, sock_game, playernumber, goal="cart")
@@ -101,7 +102,7 @@ else:
     state = followplan.GetCurrentState(game_state, playernumber)
     print("state: ", state)
     while state.find("basket") == -1:
-        path = player.grab_cart_or_basket(game_state, kind="basket")
+        path = player.grab_cart_or_basket(game_state, playernumber, kind="basket")
         print("got the path to basket")
         #print("Path: ", path)
         results = followplan.ExecutePlanToItem(path, sock_game, playernumber, goal="basket")
@@ -137,7 +138,7 @@ while len(shopping_list) > 0:
     nextitem = followplan.get_next_shopping_item(game_state, playernumber, shopping_list, shopping_quant)
     print("got the next shopping item")
     nextitemPos = target_locations[nextitem[0]]
-    path = player.get_path(game_state, nextitemPos, has_cart)
+    path = player.get_path(game_state, nextitemPos, has_cart, playernumber)
     # now take the path and excute it
     results = followplan.ExecutePlanToItem(path, sock_game, playernumber)
     if results == "ERROR":
@@ -155,7 +156,7 @@ while len(shopping_list) > 0:
 sock_game.send(str.encode("0 NOP"))
 output = recv_socket_data(sock_game)
 game_state = json.loads(output) # get new state   
-path = player.checkout(game_state)
+path = player.checkout(game_state, playernumber)
 # go to the checkout
 
 status = followplan.ExecutePlanToItem(path, sock_game, playernumber)
