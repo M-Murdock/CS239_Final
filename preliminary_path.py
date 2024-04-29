@@ -356,14 +356,14 @@ class PathPlanner:
  
         return path_dict
 
-    def leave_store(self, env):
+    def leave_store(self, env, playernumber):
         self.game_state = env
         start = (self.game_state['observation']['players'][0]['position'][0], self.game_state['observation']['players'][0]['position'][1])
         print("start: ", start)
         
         goal = [-0.8, 15.6] 
   
-        path_dict = self._goto(goal=goal, last_action='NOP')
+        path_dict = self._goto(playernumber, env, goal=goal, last_action='NOP')
         print("path_dict: ", path_dict)
  
         return path_dict
