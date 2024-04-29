@@ -124,7 +124,7 @@ def GetCurrentState(game_state, playernumber):
             direction = directions[directionfacing]  
             print("direction: ", direction) 
             state = state + direction + ","
-       
+
     if game_state["observation"]['baskets'] != []:
         for basket in list(game_state["observation"]['baskets']):
             if basket['owner'] == playernumber:
