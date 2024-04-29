@@ -328,6 +328,7 @@ class PathPlanner:
         
         path_dict = self._goto(goal=(goal_x, goal_y), last_action="INTERACT", last_direction="SOUTH")
         
+        print("RETURNING THE DICTIONARY")
         return path_dict
     
     def checkout(self, env):
