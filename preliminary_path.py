@@ -159,6 +159,8 @@ class PathPlanner:
         cost_so_far = {}
         came_from[start] = None
         cost_so_far[start] = 0
+
+        print("\n\n\n goal: ", goal )
         
         while not frontier.empty():
 

@@ -218,6 +218,8 @@ class Agent:
         came_from[start] = None
         cost_so_far[start] = 0
         distance = 1000
+        
+        print("\n\n\n\n goal from AStar : ", goal)
    
         while not frontier.empty():
 
