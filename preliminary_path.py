@@ -143,7 +143,7 @@ class PathPlanner:
     def _is_close_enough(self, current, goal, tolerance=0.15, is_item = True):
         """Check if the current position is within tolerance of the goal position."""
         if is_item is not None:
-            tolerance = 0.3
+            tolerance = 0.6
             #print(current, goal)
             return (abs(current[0] - goal[0]) < 0.65 and abs(current[1] - goal[1]) < 0.45)
 
@@ -314,9 +314,9 @@ class PathPlanner:
             start = (self.game_state['observation']['players'][0]['position'][0], self.game_state['observation']['players'][0]['position'][1])
         
         path = self._astar(start, goal, is_item = True) # get xy coordinates
-        print("-----\n LAST ACTIONS = ", str(path[-1]), ", ", str(path[-2]), "\n --------")
         if path == None:
             return None
+        print("-----\n LAST ACTIONS = ", str(path[-1]), ", ", str(path[-2]), "\n --------")
         actions = self._get_actions(path, goal) # get action to take from each xy position
         if actions == None:
             return None  
