@@ -74,26 +74,25 @@ itemcount = len(shopping_list)
 
 if itemcount > 6:
     print("More than 6, get a cart")
-    path = player.grab_cart_or_basket(game_state, kind="cart")
-    print("got the path to cart")
-    print("Path: ", path)
-    state = followplan.ExecutePlanToItem(path, sock_game, playernumber)
-    while state != "ERROR" and state != "SUCCESS":
-        # make a new plan, this one failed
-        state = followplan.ExecutePlanToItem(path, sock_game, playernumber)
-
+    state = followplan.GetCurrentState(game_state, playernumber)
+    while state.find("cart") == -1:
+        path = player.grab_cart_or_basket(game_state, kind="cart")
+        print("got the path to cart")
+        print("Path: ", path)
+        results = followplan.ExecutePlanToItem(path, sock_game, playernumber)
     has_cart = True
+    print("Got the cart")
 else:
     print("less than 6, get a basket")
-    path = player.grab_cart_or_basket(game_state, kind="basket")
-    print("got the path to basket")
-    print("Path: ", path)
-    state = followplan.ExecutePlanToItem(path, sock_game, playernumber)
-    while state == "ERROR" and state != "SUCCESS":
-        # keep looping through the plan
-        state = followplan.ExecutePlanToItem(path, sock_game, playernumber)
-
+    state = followplan.GetCurrentState(game_state, playernumber)
+    print("state: ", state)
+    while state.find("cart") == -1:
+        path = player.grab_cart_or_basket(game_state, kind="basket")
+        print("got the path to basket")
+        print("Path: ", path)
+        results = followplan.ExecutePlanToItem(path, sock_game, playernumber)
     has_cart = False
+    print("Got the basket")
 ## end of the "do once" section
 
 # get all the items on the shopping list
@@ -111,8 +110,8 @@ while len(shopping_list) > 0:
     nextitemPos = target_locations[nextitem[0]]
     path = player.get_path(game_state, nextitemPos, has_cart)
     # now take the path and excute it
-    state = followplan.ExecutePlanToItem(path, sock_game, playernumber)
-    if state == "ERROR":
+    results = followplan.ExecutePlanToItem(path, sock_game, playernumber)
+    if results == "ERROR":
         print("Error")
         # make a new plan, this one failed
     else:
