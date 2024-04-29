@@ -312,6 +312,7 @@ class PathPlanner:
             start = (self.game_state['observation']['players'][0]['position'][0], self.game_state['observation']['players'][0]['position'][1])
         
         path = self._astar(start, goal, is_item = True) # get xy coordinates
+        print("-----\n LAST ACTION = ", str(path[-1]), "\n --------")
         if path == None:
             return None
         actions = self._get_actions(path, goal) # get action to take from each xy position
@@ -352,7 +353,7 @@ class PathPlanner:
     """
     Public function for generating path from start to goal. Returns the path as a dictionary of states and actions
     """
-    def get_path(self, env, goal, last_action="NOOP", has_basket=True, has_cart=False, grabbing_item=True):   
+    def get_path(self, env, goal, last_action="INTERACT", has_basket=True, has_cart=False, grabbing_item=True):   
         print("getting path to goal: ", goal)
         # get observations from the environment
         self.game_state = env
@@ -374,100 +375,35 @@ class PathPlanner:
             
         return path_dict
             
-def find_item_position(data, item_name):
-    """
-    Finds the position of an item based on its name within the shelves section of the data structure.
-
-    Parameters:
-        data (dict): The complete data structure containing various game elements including shelves.
-        item_name (str): The name of the item to find.
-
-    Returns:
-        list or None: The position of the item as [x, y] or None if the item is not found.
-    """
-    if item != 'prepared foods' and item != 'fresh fish': 
-    # Loop through each shelf in the data
-        for shelf in data['observation']['shelves']:
-            if shelf['food_name'] == item_name:
-                return shelf['position']
-
-    return None
 
 
 
-if __name__ == "__main__":
-    action_commands = ['NOP', 'NORTH', 'SOUTH', 'EAST', 'WEST', 'TOGGLE_CART', 'INTERACT']
+
+# if __name__ == "__main__":
+#     action_commands = ['NOP', 'NORTH', 'SOUTH', 'EAST', 'WEST', 'TOGGLE_CART', 'INTERACT']
     
-    # Connect to Supermarket
-    HOST = '127.0.0.1'
-    PORT = 9000
-    sock_game = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock_game.connect((HOST, PORT))
-    sock_game.send(str.encode("0 RESET"))  # reset the game
-    state = recv_socket_data(sock_game)
-    game_state = json.loads(state)
-    shopping_list = game_state['observation']['players'][0]['shopping_list']
-    shopping_quant = game_state['observation']['players'][0]['list_quant']
-    player = PathPlanner()
+#     # Connect to Supermarket
+#     HOST = '127.0.0.1'
+#     PORT = 9000
+#     sock_game = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#     sock_game.connect((HOST, PORT))
+#     sock_game.send(str.encode("0 RESET"))  # reset the game
+#     state = recv_socket_data(sock_game)
+#     game_state = json.loads(state)
+#     shopping_list = game_state['observation']['players'][0]['shopping_list']
+#     shopping_quant = game_state['observation']['players'][0]['list_quant']
+#     player = PathPlanner()
     
-    offset = 1
+#     offset = 1
         
-    item = "red bell pepper" #shopping_list[0]
+#     item = "red bell pepper" #shopping_list[0]
     
-    print("go for item: ", item)
-    item_pos = find_item_position(game_state, item)
-    print(item_pos)
-    path = player.get_path(game_state, (item_pos[0] + offset, item_pos[1]), has_cart=True, grabbing_item=False)
-    # path = player.checkout(game_state)
-    # path = player.grab_cart_or_basket(game_state)
-    print(path)
+#     print("go for item: ", item)
+#     item_pos = find_item_position(game_state, item)
+#     print(item_pos)
+#     path = player.get_path(game_state, (item_pos[0] + offset, item_pos[1]), has_cart=True, grabbing_item=False)
+#     # path = player.checkout(game_state)
+#     # path = player.grab_cart_or_basket(game_state)
+#     print(path)
     
-    # cartReturns = [2, 18.5]
-    # basketReturns = [3.5, 18.5]
-    # registerReturns_1 = [2, 4.5]
-    # registerReturns_2 = [2, 9.5]
-
-    # if len(shopping_list) > 0:
-    #     player.perform_actions(player.from_path_to_actions(player._astar((player.player['position'][0], player.player['position'][1]),
-    #     (basketReturns[0], basketReturns[1] ), player.objs, 20, 25)))
-    #     player.face_item(basketReturns[0], basketReturns[1])
-    #     player.step('INTERACT')
-    #     player.step('INTERACT')
-    #     for item in shopping_list:
-    #         y_offset = 0
-    #         print("go for item: ", item)
-    #         item_pos = find_item_position(game_state, item)
-    #         if item != 'prepared foods' and item != 'fresh fish': 
-    #             item_pos = find_item_position(game_state, item)
-    #         else:
-    #             if item == 'prepared foods':
-    #                 item_pos = [18.25, 4.75]
-    #             else:
-    #                 item_pos = [18.25, 10.75]
-    #         if item == 'milk' or item == 'chocolate milk' or item == 'strawberry milk':
-    #             y_offset = 3
-    #         path  = player.astar((player.player['position'][0], player.player['position'][1]),
-    #                             (item_pos[0] + offset, item_pos[1] + y_offset), objs, 20, 25)
-    #         if path == None:
-    #             continue
-    #         player.perform_actions(player.from_path_to_actions(path))
-    #         player.face_item(item_pos[0] + offset, item_pos[1])
-          
-    #         for i in range(shopping_quant[shopping_list.index(item)]):
-    #             player.step('INTERACT')
-    #             if item == 'prepared foods' and item == 'fresh fish':
-    #                 player.step('INTERACT')
-                    
-    # # go to closer register
-    # if player.player['position'][1] < 7:
-    #     path = player.astar((player.player['position'][0], player.player['position'][1]),
-    #                         (registerReturns_1[0] + offset, registerReturns_1[1]), player.objs, 20, 25)
-    #     if path == None:
-    #         print("no path to register")
-    #     player.perform_actions(player.from_path_to_actions(path))
-    # else:
-    #     path = player.astar((player.player['position'][0], player.player['position'][1]),
-    #                         (registerReturns_2[0] + offset, registerReturns_2[1]), player.objs, 20, 25)
-    #     if path == None:
-    #         print("no path to register")
-    #     player.perform_actions(player.from_path_to_actions(path))
+    
