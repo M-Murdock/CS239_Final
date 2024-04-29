@@ -74,7 +74,7 @@ for i in range(len(shopping_list)):
 shopping_quant = game_state['observation']['players'][playernumber]['list_quant']
 player = preliminary_path.PathPlanner()
 print("Created Preliminary Path")
-itemcount = len(shopping_list)
+itemcount = sum(shopping_quant)
 
 if itemcount > 6:
     print("More than 6, get a cart")
