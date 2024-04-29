@@ -281,11 +281,13 @@ class PathPlanner:
         self.game_state = env 
             
         if kind == "cart":
-            goal_x = self.cartReturns[0] 
+            goal_x = self.cartReturns[0] + .5
             goal_y = self.cartReturns[1]
         else:
             goal_x = self.basketReturns[0] 
             goal_y = self.basketReturns[1] 
+            goal_x = self.basketReturns[0] + .5
+            goal_y = self.basketReturns[1]
             
         
         path_dict = self._goto(goal=(goal_x, goal_y), last_action="TOGGLE_CART")
