@@ -244,7 +244,8 @@ class PathPlanner:
         #print(len(path))
         
         if not self.details == "":
-            self.details = self.details + ","
+            if not self.details[-1] == ',':
+                self.details = self.details + ","
             
         # get current direction
         directions = ['NORTH', 'SOUTH', 'EAST', 'WEST']
