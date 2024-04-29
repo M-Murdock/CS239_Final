@@ -20,7 +20,7 @@ def point_in_object(point, obj):
     return False
 
 
-def path_blocked(player_id, path, state):
+def path_blocked(player_id, path, game_state):
     """
     Determines if a given path is blocked by any other players or carts.
 
@@ -32,8 +32,8 @@ def path_blocked(player_id, path, state):
     Returns:
         bool: True if path is blocked, False otherwise.
     """
-    players = state['observation']['players']
-    carts = state['observation']['carts']
+    players = game_state['observation']['players']
+    carts = game_state['observation']['carts']
     player = players[player_id]
     isHoldingCart = player['curr_cart'] != -1
 

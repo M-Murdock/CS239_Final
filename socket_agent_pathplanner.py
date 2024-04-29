@@ -79,7 +79,7 @@ if itemcount > 6:
         path = player.grab_cart_or_basket(game_state, kind="cart")
         print("got the path to cart")
         #print("Path: ", path)
-        results = followplan.ExecutePlanToItem(path, sock_game, playernumber)
+        results = followplan.ExecutePlanToItem(path, sock_game, playernumber, goal="cart")
         ## Updating game_state from environment
         sock_game.send(str.encode("0 NOP"))
         print("sent NOP to environment")
@@ -99,7 +99,7 @@ else:
         path = player.grab_cart_or_basket(game_state, kind="basket")
         print("got the path to basket")
         #print("Path: ", path)
-        results = followplan.ExecutePlanToItem(path, sock_game, playernumber)
+        results = followplan.ExecutePlanToItem(path, sock_game, playernumber, goal="basket")
 
 
         ## Updating game_state from environment

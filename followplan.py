@@ -150,8 +150,17 @@ def GetCurrentState(game_state, playernumber):
     print("state: ", state)                
     return state
 
+def send_action(action, sock_game, playernumber):
+    formataction = str(playernumber) + " " + action
+    print("formataction: ", formataction)
+    sock_game.send(str.encode(formataction))  # send action to env
+    print("sent action to environment")
+    output = recv_socket_data(sock_game)
+    game_state = json.loads(output) # get new state
+    state = GetCurrentState(game_state, playernumber)
+    return state
 
-def ExecutePlanToItem(path, sock_game, playernumber): 
+def ExecutePlanToItem(path, sock_game, playernumber, goal=""): 
     # the path is a dictionary of states and actions
     # get the current state from the environment
     # find out if the current state is any of the states in the path
@@ -171,18 +180,18 @@ def ExecutePlanToItem(path, sock_game, playernumber):
         #print("observation: ", observation)
         state = GetCurrentState(game_state, playernumber) 
         polllength = 3
-        print("poll length 3")
-        if pollingcounter > polllength:
-            print("checking path for blockage")
-            pollingcounter = 0 # reset the counter
-            isblocked = path_blocked(path, state)
-            if isblocked == True:
-                print("path is blocked")
-                return "ERROR"
-            print("resetting")
+
         for key in path:
+            if pollingcounter > polllength:
+                print("checking path for blockage")
+                pollingcounter = 0 # reset the counter
+                isblocked = path_blocked(playernumber, path, game_state)
+                if isblocked == True:
+                    print("path is blocked")
+                    return "ERROR"
+
             print("the key we are checking is " + key)
-            print("pollingcounter: ", pollingcounter)
+            print("the action for the key is " + str(path[key]))
             if key.find(state) != -1: # if the state is in the path (usually it will be the whole path, 
                                         # but not when END is included in the action)
                 print("matched key.  checking for end of path")
@@ -199,18 +208,24 @@ def ExecutePlanToItem(path, sock_game, playernumber):
                 if actionok == True:
                     ## actually take the action in the environment
                     print("Sending action: ", action)
-                    formataction = str(playernumber) + " " + action
-                    print("formataction: ", formataction)
-                    sock_game.send(str.encode(formataction))  # send action to env
-                    print("sent action to environment")
-                    output = recv_socket_data(sock_game)
-                    game_state = json.loads(output) # get new state
-                    state = GetCurrentState(game_state, playernumber)
-                    print("got state", state, "from environment")
+                    state = send_action(action, sock_game, playernumber)
                     # do not remove the state from the path in case we return to it, e.g. in the stochastic action scenario
                     pollingcounter = pollingcounter + 1 # increment the stepcount
                     if endpath == True:
-                        results = "SUCCESS"
+                        print("End of path actions complete, checking for goal ", goal)
+                        if goal == "cart" or goal == "basket":
+                            if state.find(goal) != -1 or state.find("cart") != -1:
+                                print("cart/basket acquired")
+                                results = "SUCCESS"
+                            else:
+                                print("cart/basket not acquired")
+                                # just try again with the INTERACT?
+                                state = send_action(action, sock_game, playernumber)
+
+                        else: #if we were not looking for a cart or a basket, just assume for now we got it.
+                            # this could be replaced with a real check for the item we were supposed to get
+                            
+                            results = "SUCCESS"
                         return results
                 else:
                     print("Action not allowed")
