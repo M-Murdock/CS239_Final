@@ -129,8 +129,8 @@ def GetCurrentState(game_state, playernumber):
         for basket in list(game_state["observation"]['baskets']):
             if basket['owner'] == playernumber:
                 state = state + "basket,"       
-    if game_state["observation"]['players'][playernumber]["curr_cart"] > 0:
-        state.join = "cart"
+    if game_state["observation"]['players'][playernumber]["curr_cart"] >= 0:
+        state = state + "cart,"
     for key in game_state["observation"]: 
         for key2 in game_state["observation"][key]: 
             if key == "players":
@@ -218,8 +218,12 @@ def ExecutePlanToItem(path, sock_game, playernumber, goal=""):
                                 results = "SUCCESS"
                             else:
                                 #print("cart/basket not acquired")
-                                # just try again with the INTERACT?
-                                state = send_action(action, sock_game, playernumber)
+                                while state.find(goal) == -1 and state.find("cart") == -1:
+                                    #print("cart/basket not acquired, trying again")
+                                    action = "INTERACT"
+                                    state = send_action(action, sock_game, playernumber)
+                                    #print(state)
+
 
                         else: #if we were not looking for a cart or a basket, just assume for now we got it.
                             # this could be replaced with a real check for the item we were supposed to get
