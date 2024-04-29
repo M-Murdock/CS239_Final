@@ -221,7 +221,7 @@ class PathPlanner:
                 
         # face the goal
         x, y = goal
-        print("path length: ", str(len(path)), ", path: ", path)
+        #print("path length: ", str(len(path)), ", path: ", path)
         if len(path) > 1:
             
             if path[-1][1] < y:
@@ -239,7 +239,7 @@ class PathPlanner:
     """
     Using actions and path, build a dictionary of states and actions
     """
-    def _build_state_action_dict(self, actions, path, last_action="NOOP", last_direction=None):
+    def _build_state_action_dict(self, actions, path, last_action="NOOP", last_direction="INTERACT"):
         #print(len(actions))
         #print(len(path))
         
@@ -276,7 +276,7 @@ class PathPlanner:
             if not (self.dir_facing == 'SOUTH'):
                 state_action_dict[self.dir_facing + "," + self.details + "" + str(self.last_pos)] = 'SOUTH'
                 self.dir_facing = 'SOUTH'
-                print("FACING SOUTH\n-----\n-----")
+                #print("FACING SOUTH\n-----\n-----")
         elif (self.last_pos[0] > goal_pos[0]) or (last_direction == 'WEST'): # elif x > goal_x then we should face west
             # if not already facing west, face west
             if not (self.dir_facing == 'WEST'):
@@ -287,9 +287,9 @@ class PathPlanner:
             if not (self.dir_facing == 'NORTH'):
                 state_action_dict[self.dir_facing + "," + self.details + "" + str(self.last_pos)] = 'NORTH'
                 self.dir_facing = 'NORTH'
-    
+        #print("last action: ", last_action)
         state_action_dict["END," + self.dir_facing + "," + self.details + "" + str(self.last_pos)] = last_action
-    
+        #print("state_action_dict: ", state_action_dict)
         return state_action_dict
     
     # returns the y coordinate of the midpoint of the agent's current aisle
@@ -332,7 +332,7 @@ class PathPlanner:
             
         
         path_dict = self._goto(goal=(goal_x, goal_y), last_action="INTERACT", last_direction="SOUTH")
-        print("RETURNING THE DICTIONARY")
+        #print("RETURNING THE DICTIONARY")
         return path_dict
     
     def checkout(self, env):

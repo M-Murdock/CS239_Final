@@ -67,6 +67,10 @@ while steps < 10:
 
 
 shopping_list = game_state['observation']['players'][playernumber]['shopping_list']
+for i in range(len(shopping_list)):
+    if i == "prepared foods":
+        shopping_list.remove(i)
+
 shopping_quant = game_state['observation']['players'][playernumber]['list_quant']
 player = preliminary_path.PathPlanner()
 print("Created Preliminary Path")
@@ -119,6 +123,7 @@ while len(shopping_list) > 0:
     print("Shopping list: ", shopping_list)
     print("Shopping quant: ", shopping_quant)
 
+
     ## Updating game_state from environment
     sock_game.send(str.encode("0 NOP"))
     print("sent NOP to environment")
@@ -140,11 +145,14 @@ while len(shopping_list) > 0:
     else:
         print("Got the item")
         # make a new plan, but first remove the item we already got from the shopping list
-        shopping_list.remove(nextitem)
+        print("shopping list before removal: ", shopping_list)
+        print("next item is ", nextitem)
+        shopping_list.remove(nextitem[0])
         shopping_quant.pop(0)
     
 path = player.checkout(game_state)
-followplan.ExecutePlanToItem(path, sock_game)
+# go to the checkout
+followplan.ExecutePlanToItem(path, sock_game, playernumber)
 
 
 sock_game.close()

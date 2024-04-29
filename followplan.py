@@ -120,9 +120,9 @@ def GetCurrentState(game_state, playernumber):
     for player in game_state["observation"]["players"]:
         if player['index'] == playernumber:
             directionfacing = player["direction"]
-            #print("directionfacing: ", directionfacing)
+            ##print("directionfacing: ", directionfacing)
             direction = directions[directionfacing]  
-            #print("direction: ", direction) 
+            ##print("direction: ", direction) 
             state = state + direction + ","
 
     if game_state["observation"]['baskets'] != []:
@@ -135,26 +135,26 @@ def GetCurrentState(game_state, playernumber):
         for key2 in game_state["observation"][key]: 
             if key == "players":
                 for thisplayer in list(game_state["observation"][key]):
-                    #print("thisplayer: ", thisplayer)
-                    #print(thisplayer['index'])
+                    ##print("thisplayer: ", thisplayer)
+                    ##print(thisplayer['index'])
                     if thisplayer['index'] == playernumber:
-                        #print("found player")
+                        ##print("found player")
                         currentposition = round(key2["position"][0],3), round(key2["position"][1],3) # round to 3 decimal places
                         currentposition = str(currentposition)
                         currentposition = currentposition.replace("[", "(")
                         currentposition = currentposition.replace("]", ")")
-                        #print("currentposition: ", currentposition)
+                        ##print("currentposition: ", currentposition)
                         state = state + currentposition
 
 
-    print("state: ", state)                
+    ##print("state: ", state)                
     return state
 
 def send_action(action, sock_game, playernumber):
     formataction = str(playernumber) + " " + action
-    print("formataction: ", formataction)
+    ##print("formataction: ", formataction)
     sock_game.send(str.encode(formataction))  # send action to env
-    print("sent action to environment")
+    ##print("sent action to environment")
     output = recv_socket_data(sock_game)
     game_state = json.loads(output) # get new state
     state = GetCurrentState(game_state, playernumber)
@@ -170,55 +170,54 @@ def ExecutePlanToItem(path, sock_game, playernumber, goal=""):
     results = ""
     endpath = False
     while results != "SUCCESS":
-        #print("path is ", path)
+        ##print("path is ", path)
         sock_game.send(str.encode("0 NOP"))
-        #print("sent NOP to environment in ExecutePlanToItem")
+        ##print("sent NOP to environment in ExecutePlanToItem")
         output = recv_socket_data(sock_game)
-        #print("got output from environment")
+        ##print("got output from environment")
         game_state = json.loads(output) # get new state
-        #print("got formatted observation back from environment in ExecutePlanToItem")
-        #print("observation: ", observation)
+        ##print("got formatted observation back from environment in ExecutePlanToItem")
+        ##print("observation: ", observation)
         state = GetCurrentState(game_state, playernumber) 
         polllength = 3
 
         for key in path:
             if pollingcounter > polllength:
-                print("checking path for blockage")
+                ##print("checking path for blockage")
                 pollingcounter = 0 # reset the counter
                 isblocked = path_blocked(playernumber, path, game_state)
                 if isblocked == True:
-                    print("path is blocked")
+                    #print("path is blocked")
                     return "ERROR"
 
-            print("the key we are checking is " + key)
-            print("the action for the key is " + str(path[key]))
+            ##print("the key we are checking is " + key)
+            ##print("the action for the key is " + str(path[key]))
             if key.find(state) != -1: # if the state is in the path (usually it will be the whole path, 
                                         # but not when END is included in the action)
-                print("matched key.  checking for end of path")
+                ##print("matched key.  checking for end of path")
                 if key.find("END") != -1: # if the action includes "END" then we are at the end of path
-                    print("End of path")
+                    ##print("End of path")
                     endpath = True
-                print("Checking against norms")
+                ##print("Checking against norms")
                 
                 # set the action to what is specified in the path and then check if it is allowed
-                print
                 action = path[key]
-                print("action to be checked:", action)
-                actionok = checknorms(action)
+                ##print("action to be checked:", action)
+                actionok, action= checknorms(action)
                 if actionok == True:
                     ## actually take the action in the environment
-                    print("Sending action: ", action)
+                    ##print("Sending action: ", action)
                     state = send_action(action, sock_game, playernumber)
                     # do not remove the state from the path in case we return to it, e.g. in the stochastic action scenario
                     pollingcounter = pollingcounter + 1 # increment the stepcount
                     if endpath == True:
-                        print("End of path actions complete, checking for goal ", goal)
+                        ##print("End of path actions complete, checking for goal ", goal)
                         if goal == "cart" or goal == "basket":
                             if state.find(goal) != -1 or state.find("cart") != -1:
-                                print("cart/basket acquired")
+                                #print("cart/basket acquired")
                                 results = "SUCCESS"
                             else:
-                                print("cart/basket not acquired")
+                                #print("cart/basket not acquired")
                                 # just try again with the INTERACT?
                                 state = send_action(action, sock_game, playernumber)
 
@@ -228,10 +227,10 @@ def ExecutePlanToItem(path, sock_game, playernumber, goal=""):
                             results = "SUCCESS"
                         return results
                 else:
-                    print("Action not allowed")
+                    #print("Action not allowed")
                     return "ERROR"
         # if it never finds they key in the path, something is wrong -- re-plan    
-        print("State not in path")
+        #print("State not in path")
         return "ERROR"
         
 def checknorms(action):
@@ -239,7 +238,7 @@ def checknorms(action):
     # this is hard, for now
 
     if action == False:
-        return False
-    return True
+        action = "INTERACT"
+    return True, action
     
     
