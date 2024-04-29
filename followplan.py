@@ -234,7 +234,7 @@ def ExecutePlanToItem(path, sock_game, playernumber, goal=""):
                     print("Action not allowed")
                     return "ERROR"
         # if it never finds they key in the path, something is wrong -- re-plan    
-        print("State not in path")
+        print("State ", state, " not in path")
         return "ERROR"
         
 def checknorms(action):
