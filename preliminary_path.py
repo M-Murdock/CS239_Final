@@ -143,7 +143,7 @@ class PathPlanner:
     def _is_close_enough(self, current, goal, tolerance=0.15, is_item = True):
         """Check if the current position is within tolerance of the goal position."""
         if is_item is not None:
-            tolerance = 0.6
+            tolerance = 0.3
             #print(current, goal)
             return (abs(current[0] - goal[0]) < 0.65 and abs(current[1] - goal[1]) < 0.45)
 
@@ -280,10 +280,10 @@ class PathPlanner:
         self.game_state = env 
             
         if kind == "cart":
-            goal_x = self.cartReturns[0] + 1
+            goal_x = self.cartReturns[0] 
             goal_y = self.cartReturns[1]
         else:
-            goal_x = self.basketReturns[0] + 1
+            goal_x = self.basketReturns[0] 
             goal_y = self.basketReturns[1]
             
         path_dict = self._goto(goal=(goal_x, goal_y), last_action="TOGGLE_CART")
