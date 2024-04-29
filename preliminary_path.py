@@ -318,12 +318,13 @@ class PathPlanner:
         
         path_dict = self._goto(goal=(goal_x, goal_y), last_action="INTERACT")
         
+        # get current 
         directions = ['NORTH', 'SOUTH', 'EAST', 'WEST']
         last_direction = directions[self.game_state['observation']['players'][0]['direction']]
         pos = (self.game_state['observation']['players'][0]['position'][0], self.game_state['observation']['players'][0]['position'][1])
         # if not facing south, then face south
         if not last_direction == 'SOUTH':
-            path_dict[last_direction + "," + self.details + "" + str((round(pos[i][0], 3), round(pos[i][1], 3)))] = "SOUTH"
+            path_dict[last_direction + "," + self.details + "" + str((round(pos[0], 3), round(pos[1], 3)))] = "SOUTH"
         
         return path_dict
     
