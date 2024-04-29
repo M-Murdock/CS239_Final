@@ -87,7 +87,7 @@ if itemcount > 6:
         print("got output from environment")
         game_state = json.loads(output) # get new state
         state = followplan.GetCurrentState(game_state, playernumber)
-        print("state: ", state)
+        print("state-find: ", state.find("cart"))
 
     has_cart = True
     print("\n\n\n\n\n Got the cart")
@@ -95,7 +95,7 @@ else:
     print("less than 6, get a basket")
     state = followplan.GetCurrentState(game_state, playernumber)
     print("state: ", state)
-    while state.find("cart") == -1:
+    while state.find("basket") == -1:
         path = player.grab_cart_or_basket(game_state, kind="basket")
         print("got the path to basket")
         #print("Path: ", path)
@@ -107,7 +107,9 @@ else:
         output = recv_socket_data(sock_game)
         game_state = json.loads(output) # get new state
         state = followplan.GetCurrentState(game_state, playernumber)
-        print("state: ", state)
+        print("state-find: ", state.find("basket"))
+
+
     has_cart = False
     print("\n\n\n\n\n Got the basket")
 ## end of the "do once" section
