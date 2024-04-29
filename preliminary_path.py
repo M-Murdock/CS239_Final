@@ -352,6 +352,7 @@ class PathPlanner:
     Public function for generating path from start to goal. Returns the path as a dictionary of states and actions
     """
     def get_path(self, env, goal, last_action="NOOP", has_basket=True, has_cart=False, grabbing_item=True):   
+        print("getting path to goal: ", goal)
         # get observations from the environment
         self.game_state = env
         if has_basket:

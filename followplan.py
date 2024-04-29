@@ -87,10 +87,10 @@ def euclidean_distance(pos1, pos2):
     return ((pos1[0] - pos2[0])**2 + (pos1[1] - pos2[1])**2)**0.5
 
 
-def get_next_shopping_item(observation):
-    shopping_list = observation['observation']['players'][0]['shopping_list']
-    shopping_quants = observation['observation']['players'][0]['list_quant']
-    user_location = observation['observation']['players'][0]['position']
+def get_next_shopping_item(game_state, playernumber, shopping_list, shopping_quants):
+    for player in game_state["observation"]["players"]:
+        if player['index'] == playernumber:
+            user_location = player['position']
 
     quant_dict = dict(zip(shopping_list, shopping_quants))
 
@@ -109,16 +109,15 @@ def get_next_shopping_item(observation):
 
 
 
-def GetCurrentState(observation, playernumber): 
+def GetCurrentState(game_state, playernumber): 
 ##  example state {'NORTH,basket(4.05, 10.65)': 'NOOP', ...}
 ## 0: North 1: south 2: east 3: west
 
     # get the current state of the environment
     state = ""
     directions = ['NORTH', 'SOUTH', 'EAST', 'WEST']
-    print("state: ", state)
 
-    for player in observation["observation"]["players"]:
+    for player in game_state["observation"]["players"]:
         if player['index'] == playernumber:
             directionfacing = player["direction"]
             print("directionfacing: ", directionfacing)
@@ -126,16 +125,16 @@ def GetCurrentState(observation, playernumber):
             print("direction: ", direction) 
             state = state + direction + ","
        
-    if observation["observation"]['baskets'] != []:
-        for basket in list(observation["observation"]['baskets']):
+    if game_state["observation"]['baskets'] != []:
+        for basket in list(game_state["observation"]['baskets']):
             if basket['owner'] == playernumber:
                 state = state + "basket,"       
-    if observation["observation"]['players'][playernumber]["curr_cart"] > 0:
+    if game_state["observation"]['players'][playernumber]["curr_cart"] > 0:
         state.join = "cart"
-    for key in observation["observation"]: 
-        for key2 in observation["observation"][key]: 
+    for key in game_state["observation"]: 
+        for key2 in game_state["observation"][key]: 
             if key == "players":
-                for thisplayer in list(observation["observation"][key]):
+                for thisplayer in list(game_state["observation"][key]):
                     print("thisplayer: ", thisplayer)
                     print(thisplayer['index'])
                     if thisplayer['index'] == playernumber:
@@ -158,32 +157,45 @@ def ExecutePlanToItem(path, sock_game, playernumber):
     # if so, execute the action
     # if not, return an error
     pollingcounter = 0
-    while len(path) > 0:
-        print("path length is ", len(path))
+    results = ""
+    endpath = False
+    while results != "SUCCESS":
+        print("path is ", path)
         sock_game.send(str.encode("0 NOP"))
-        print("sent NOP to environment")
+        print("sent NOP to environment in ExecutePlanToItem")
         output = recv_socket_data(sock_game)
         print("got output from environment")
-        observation = json.loads(output) # get new state
-        print("got formatted observation back from environment")
-        print("observation: ", observation)
-        state = GetCurrentState(observation, playernumber) 
+        game_state = json.loads(output) # get new state
+        print("got formatted observation back from environment in ExecutePlanToItem")
+        #print("observation: ", observation)
+        state = GetCurrentState(game_state, playernumber) 
         polllength = 3
         print("poll length 3")
         if pollingcounter > polllength:
-            path_blocked(path, state)
+            isblocked = path_blocked(path, state)
+            if isblocked == True:
+                print("path is blocked")
+                return "ERROR"
             pollingcounter = 0 # reset the counter
             print("resetting")
-        print("checking for end of path")
         for key in path:
-            if key.find("END") != -1: # if the key includes "END" then we are at the end of the path
-                print("End of path")
-                return "End of path"
-            print("the key is " + str(key))
+            print("the key we are checking is " + str(key))
             if state == key:
                 action = path[key]
+                print("checking for end of path")
+                if action.find("END") != -1: # if the action includes "END" then we are at the end of path
+                    print("End of path")
+                    endpath = True
+                    if key.find("cart") != -1: # it is the end of the path and we have a cart
+                        print("We have a cart, interact to grab it before ending")
+                        action = "0 INTERACT"
+                    else:
+                        print("No cart, just end")
+                        return "SUCCESS"
+                print("Checking against norms")
                 actionok = checknorms(action)
                 if actionok == True:
+                    
                     ## actually take the action in the environment
                     print("Sending action: ", action)
                     formataction = str(playernumber) + " " + action
@@ -191,17 +203,20 @@ def ExecutePlanToItem(path, sock_game, playernumber):
                     sock_game.send(str.encode(formataction))  # send action to env
                     print("sent action to environment")
                     output = recv_socket_data(sock_game)
-                    state = json.loads(output) # get new state
-                    print("got state back from environment")
-                    # do not remove the state from the environment in case we return to it, e.g. in the stochastic action scenario
+                    game_state = json.loads(output) # get new state
+                    state = GetCurrentState(game_state, playernumber)
+                    print("got state", state, "from environment")
+                    # do not remove the state from the path in case we return to it, e.g. in the stochastic action scenario
                     pollingcounter = pollingcounter + 1 # increment the stepcount
-                    return state, path
+                    if endpath == True:
+                        results = "SUCCESS"
                 else:
                     print("Action not allowed")
                     return "ERROR"
             else:   
                 print("State not in path")
                 return "ERROR"
+            return results
         
 def checknorms(action):
     # use norm.py to check if the action is allowed
