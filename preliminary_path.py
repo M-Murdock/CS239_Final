@@ -338,7 +338,6 @@ class PathPlanner:
     
     def checkout(self, env, playernumber=0):
         self.game_state = env
-        #FIXME = make work as not player 0
         for player in self.game_state["observation"]["players"]:
             if player['index'] == playernumber:
                 user_location = player['position']
@@ -352,13 +351,16 @@ class PathPlanner:
             goal_y = self.registerReturns_2[1]
   
         path_dict = self._goto(playernumber, env, goal=(goal_x, goal_y), last_action='INTERACT')
-        print("path_dict: ", path_dict)
+        #print("path_dict: ", path_dict)
  
         return path_dict
 
     def leave_store(self, env, playernumber):
         self.game_state = env
-        start = (self.game_state['observation']['players'][0]['position'][0], self.game_state['observation']['players'][0]['position'][1])
+        for player in self.game_state["observation"]["players"]:
+            if player['index'] == playernumber:
+                user_location = player['position']
+        start = (user_location[0], user_location[1])        
         print("start: ", start)
         
         goal = [-0.8, 15.6] 
