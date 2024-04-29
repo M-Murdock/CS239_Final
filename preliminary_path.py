@@ -238,16 +238,42 @@ class PathPlanner:
         # (0=north, 1=south, 2=east, 3=west)
         directions = ['NORTH', 'SOUTH', 'EAST', 'WEST']
         last_direction = directions[self.game_state['observation']['players'][0]['direction']]
-            
+        last_position = None 
+        
         state_action_dict = {}
         for i in range(0, len(path)):
             state_action_dict[last_direction + "," + self.details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = actions[i]
+   # --------
+            last_position = str((round(path[i][0], 3), round(path[i][1], 3)))
+            
             if (actions[i] == 'NORTH') or (actions[i] == 'SOUTH') or (actions[i] == 'EAST') or (actions[i] == 'WEST'): 
                 last_direction = actions[i]
             state_action_dict[actions[i] + "," + self.details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = actions[i]
         
-        state_action_dict["END," + last_direction + "," + self.details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = "SOUTH" # last_action
-        
+        # Turn to face the goal (but only if we're not already facing the goal!!)
+        goal_pos = path[-1]
+        # find whether we're facing the goal 
+        if last_position[0] < goal_pos[0]: # if x < goal_x then we should face east
+            # if already facing east, then do nothing 
+            if not (last_direction == 'EAST'):
+                state_action_dict[last_direction + "," + self.details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = 'EAST'
+        elif last_position[1] < goal_pos[1]: # elif y < goal_y then we should face south
+            # if already facing south, do nothing
+            if not (last_direction == 'SOUTH'):
+                state_action_dict[last_direction + "," + self.details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = 'SOUTH'
+        elif last_position[0] > goal_pos[0]: # elif x > goal_x then we should face west
+            # if already facing west, do nothing 
+            if not (last_direction == 'WEST'):
+                state_action_dict[last_direction + "," + self.details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = 'WEST'
+        elif last_position[1] > goal_pos[1]: # elif y > goal_y then we should face north
+            # if already facing north, do nothing
+            if not (last_direction == 'NORTH'):
+                state_action_dict[last_direction + "," + self.details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = 'NORTH'
+            
+        # if not, turn to face the goal 
+        state_action_dict["END," + last_direction + "," + self.details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = last_action
+    # --------
+    
         return state_action_dict
     
     # returns the y coordinate of the midpoint of the agent's current aisle
