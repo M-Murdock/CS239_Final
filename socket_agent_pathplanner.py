@@ -151,6 +151,7 @@ while len(shopping_list) > 0:
         shopping_list.remove(nextitem[0])
         shopping_quant.pop(0)
 
+# update game state so we can plan to the checkout
 sock_game.send(str.encode("0 NOP"))
 output = recv_socket_data(sock_game)
 game_state = json.loads(output) # get new state   
@@ -163,7 +164,8 @@ while status != "SUCCESS":
     path = player.checkout(game_state)
     status = followplan.ExecutePlanToItem(path, sock_game, playernumber)
     print("checkout status is ", status)
+print("leaving the store")
+player.leave_store(sock_game, playernumber)
 
-    
 sock_game.close()
      
