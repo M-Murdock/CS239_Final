@@ -80,6 +80,8 @@ if itemcount > 6:
         print("got the path to cart")
         #print("Path: ", path)
         results = followplan.ExecutePlanToItem(path, sock_game, playernumber)
+        state = followplan.GetCurrentState(game_state, playernumber)
+
     has_cart = True
     print("Got the cart")
 else:
@@ -91,6 +93,7 @@ else:
         print("got the path to basket")
         #print("Path: ", path)
         results = followplan.ExecutePlanToItem(path, sock_game, playernumber)
+        state = followplan.GetCurrentState(game_state, playernumber)
     has_cart = False
     print("Got the basket")
 ## end of the "do once" section
