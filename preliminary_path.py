@@ -22,6 +22,9 @@ class PathPlanner:
         
         self.game_state = None
         self.details = ""
+        
+        self.dir_facing = None 
+        self.last_pos = None
 
         self.objs = [
         {'height': 2.5, 'width': 3, 'position': [0.2, 4.5], 're_centered_position': [2.125, 5.75]},
@@ -230,49 +233,53 @@ class PathPlanner:
     """
     Using actions and path, build a dictionary of states and actions
     """
-    def _build_state_action_dict(self, actions, path, last_action="NOOP"):
+    def _build_state_action_dict(self, actions, path, last_action="NOOP", last_direction=None):
         print(len(actions))
         print(len(path))
         
-        # keep track of the agent's direction
-        # (0=north, 1=south, 2=east, 3=west)
+        # get current direction
         directions = ['NORTH', 'SOUTH', 'EAST', 'WEST']
-        last_direction = directions[self.game_state['observation']['players'][0]['direction']]
-        last_position = None 
+        self.dir_facing = directions[self.game_state['observation']['players'][0]['direction']]
         
+        # build the dictionary
         state_action_dict = {}
         for i in range(0, len(path)):
-            state_action_dict[last_direction + "," + self.details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = actions[i]
-   # --------
-            last_position = (round(path[i][0], 3), round(path[i][1], 3))
+            self.last_pos = (round(path[i][0], 3), round(path[i][1], 3))
+            state_action_dict[self.dir_facing + "," + self.details + "" + str(self.last_pos)] = actions[i]
             
+            # figure out which direction we're facing now 
             if (actions[i] == 'NORTH') or (actions[i] == 'SOUTH') or (actions[i] == 'EAST') or (actions[i] == 'WEST'): 
-                last_direction = actions[i]
-            state_action_dict[actions[i] + "," + self.details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = actions[i]
+                self.dir_facing = actions[i]
+            
+            # add state and action
+            state_action_dict[actions[i] + "," + self.details + "" + str(self.last_pos)] = actions[i]
         
         # Turn to face the goal (but only if we're not already facing the goal!!)
         goal_pos = path[-1]
         # find whether we're facing the goal 
-        if last_position[0] < goal_pos[0]: # if x < goal_x then we should face east
-            # if already facing east, then do nothing 
-            if not (last_direction == 'EAST'):
-                state_action_dict[last_direction + "," + self.details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = 'EAST'
-        elif last_position[1] < goal_pos[1]: # elif y < goal_y then we should face south
-            # if already facing south, do nothing
-            if not (last_direction == 'SOUTH'):
-                state_action_dict[last_direction + "," + self.details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = 'SOUTH'
-        elif last_position[0] > goal_pos[0]: # elif x > goal_x then we should face west
-            # if already facing west, do nothing 
-            if not (last_direction == 'WEST'):
-                state_action_dict[last_direction + "," + self.details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = 'WEST'
-        elif last_position[1] > goal_pos[1]: # elif y > goal_y then we should face north
-            # if already facing north, do nothing
-            if not (last_direction == 'NORTH'):
-                state_action_dict[last_direction + "," + self.details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = 'NORTH'
-            
-        # if not, turn to face the goal 
-        state_action_dict["END," + last_direction + "," + self.details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = last_action
-    # --------
+        if (self.last_pos[0] < goal_pos[0]) or (last_direction == 'EAST'): # if x < goal_x then we should face east
+            # if not already facing east, face east
+            if not (self.dir_facing == 'EAST'):
+                state_action_dict[self.dir_facing + "," + self.details + "" + str(self.last_pos)] = 'EAST'
+                self.dir_facing = 'EAST'
+        elif (self.last_pos[1] < goal_pos[1]) or (last_direction == 'SOUTH'): # elif y < goal_y then we should face south
+            # if not already facing south, face south
+            if not (self.dir_facing == 'SOUTH'):
+                state_action_dict[self.dir_facing + "," + self.details + "" + str(self.last_pos)] = 'SOUTH'
+                self.dir_facing = 'SOUTH'
+                print("FACING SOUTH\n-----\n-----")
+        elif (self.last_pos[0] > goal_pos[0]) or (last_direction == 'WEST'): # elif x > goal_x then we should face west
+            # if not already facing west, face west
+            if not (self.dir_facing == 'WEST'):
+                state_action_dict[self.dir_facing + "," + self.details + "" + str(self.last_pos)] = 'WEST'
+                self.dir_facing = 'WEST' 
+        elif (self.last_pos[1] > goal_pos[1]) or (last_direction == 'NORTH'): # elif y > goal_y then we should face north
+            # if not already facing north, face north
+            if not (self.dir_facing == 'NORTH'):
+                state_action_dict[self.dir_facing + "," + self.details + "" + str(self.last_pos)] = 'NORTH'
+                self.dir_facing = 'NORTH'
+    
+        state_action_dict["END," + self.dir_facing + "," + self.details + "" + str(self.last_pos)] = last_action
     
         return state_action_dict
     
@@ -310,22 +317,13 @@ class PathPlanner:
             goal_x = self.cartReturns[0] + .5
             goal_y = self.cartReturns[1]
         else:
-            goal_x = self.basketReturns[0] 
-            goal_y = self.basketReturns[1] 
+            # goal_x = self.basketReturns[0] 
+            # goal_y = self.basketReturns[1] 
             goal_x = self.basketReturns[0] + .5
             goal_y = self.basketReturns[1]
             
         
-        path_dict = self._goto(goal=(goal_x, goal_y), last_action="INTERACT")
-        
-        # get current direction and location
-        directions = ['NORTH', 'SOUTH', 'EAST', 'WEST']
-        last_direction = directions[self.game_state['observation']['players'][0]['direction']]
-        pos = (self.game_state['observation']['players'][0]['position'][0], self.game_state['observation']['players'][0]['position'][1])
-        # if not facing south, then face south
-        if not last_direction == 'SOUTH':
-            print("\n -------- \nLAST DIRECTION WAS NOT SOUTH \n ------")
-            path_dict[last_direction + "," + self.details + "" + str((round(pos[0], 3), round(pos[1], 3)))] = "SOUTH"
+        path_dict = self._goto(goal=(goal_x, goal_y), last_action="INTERACT", last_direction="SOUTH")
         
         return path_dict
     
@@ -344,7 +342,7 @@ class PathPlanner:
  
         return path_dict
         
-    def _goto(self, start=None, goal=None, last_action="NOOP"):
+    def _goto(self, start=None, goal=None, last_action="NOOP", last_direction=None):
         if goal == None:
             return 
         if start == None:
@@ -353,12 +351,12 @@ class PathPlanner:
         path = self._astar(start, goal, is_item = True) # get xy coordinates
         if path == None:
             return None
-        print("-----\n LAST ACTIONS = ", str(path[-1]), ", ", str(path[-2]), "\n --------")
+ 
         actions = self._get_actions(path, goal) # get action to take from each xy position
         if actions == None:
             return None  
         
-        state_act_dict = self._build_state_action_dict(actions, path, last_action=last_action)
+        state_act_dict = self._build_state_action_dict(actions, path, last_action=last_action, last_direction=last_direction)
         
         return state_act_dict  
         
