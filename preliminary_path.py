@@ -247,7 +247,7 @@ class PathPlanner:
                 last_direction = actions[i]
             state_action_dict[actions[i] + "," + self.details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = actions[i]
         
-        state_action_dict["END," + last_direction + "," + self.details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = last_action
+        state_action_dict["END," + last_direction + "," + self.details + "" + str((round(path[i][0], 3), round(path[i][1], 3)))] = "SOUTH" # last_action
         
         return state_action_dict
     
@@ -286,8 +286,9 @@ class PathPlanner:
             goal_y = self.cartReturns[1]
         else:
             goal_x = self.basketReturns[0] 
-            goal_y = self.basketReturns[1]
+            goal_y = self.basketReturns[1] 
             
+        
         path_dict = self._goto(goal=(goal_x, goal_y), last_action="TOGGLE_CART")
         
         return path_dict
