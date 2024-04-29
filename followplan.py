@@ -180,22 +180,18 @@ def ExecutePlanToItem(path, sock_game, playernumber):
             print("resetting")
         for key in path:
             print("the key we are checking is " + str(key))
-            if state == key:
-                action = path[key]
+            if state.find(key) != -1: # if the state is in the path (usually it will be the whole path, 
+                                        # but not when END is included in the action)
                 print("checking for end of path")
-                if action.find("END") != -1: # if the action includes "END" then we are at the end of path
+                if key.find("END") != -1: # if the action includes "END" then we are at the end of path
                     print("End of path")
                     endpath = True
-                    if key.find("cart") != -1: # it is the end of the path and we have a cart
-                        print("We have a cart, interact to grab it before ending")
-                        action = "0 INTERACT"
-                    else:
-                        print("No cart, just end")
-                        return "SUCCESS"
                 print("Checking against norms")
+                
+                # set the action to what is specified in the path and then check if it is allowed
+                action = path[key]
                 actionok = checknorms(action)
                 if actionok == True:
-                    
                     ## actually take the action in the environment
                     print("Sending action: ", action)
                     formataction = str(playernumber) + " " + action
