@@ -222,14 +222,15 @@ class PathPlanner:
         # face the goal
         x, y = goal
         print("path: ", path)
-        if path[-1][1] < y:
-            if not actions[-1] == 'NORTH':
-                actions.append('NORTH')
-        elif path[-1][1] > y:
-            if not actions[-1] == 'SOUTH':
-                actions.append('SOUTH')
-        else: 
-            actions.append("NOOP")
+        if len(path) > 1:
+            if path[-1][1] < y:
+                if not actions[-1] == 'NORTH':
+                    actions.append('NORTH')
+            elif path[-1][1] > y:
+                if not actions[-1] == 'SOUTH':
+                    actions.append('SOUTH')
+            else: 
+                actions.append("NOOP")
         
         return actions
     
@@ -325,8 +326,6 @@ class PathPlanner:
             goal_y = self.cartReturns[1]
             path_dict = self._goto(goal=(goal_x, goal_y), last_action="TOGGLE_CART", last_direction="SOUTH")
         else:
-            # goal_x = self.basketReturns[0] 
-            # goal_y = self.basketReturns[1] 
             goal_x = self.basketReturns[0] + .5
             goal_y = self.basketReturns[1]
             path_dict = self._goto(goal=(goal_x, goal_y), last_action="INTERACT", last_direction="SOUTH")
@@ -352,7 +351,7 @@ class PathPlanner:
         
     def _goto(self, start=None, goal=None, last_action="NOOP", last_direction=None):
         if goal == None:
-            return 
+            return None
         if start == None:
             start = (self.game_state['observation']['players'][0]['position'][0], self.game_state['observation']['players'][0]['position'][1])
         
