@@ -221,6 +221,7 @@ class PathPlanner:
                 
         # face the goal
         x, y = goal
+        print("path: ", path)
         if path[-1][1] < y:
             if not actions[-1] == 'NORTH':
                 actions.append('NORTH')

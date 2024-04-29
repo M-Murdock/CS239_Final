@@ -90,7 +90,7 @@ if itemcount > 6:
         print("state: ", state)
 
     has_cart = True
-    print("Got the cart")
+    print("\n\n\n\n\n Got the cart")
 else:
     print("less than 6, get a basket")
     state = followplan.GetCurrentState(game_state, playernumber)
@@ -104,14 +104,12 @@ else:
 
         ## Updating game_state from environment
         sock_game.send(str.encode("0 NOP"))
-        print("sent NOP to environment")
         output = recv_socket_data(sock_game)
-        print("got output from environment")
         game_state = json.loads(output) # get new state
         state = followplan.GetCurrentState(game_state, playernumber)
         print("state: ", state)
     has_cart = False
-    print("Got the basket")
+    print("\n\n\n\n\n Got the basket")
 ## end of the "do once" section
 
 # get all the items on the shopping list
