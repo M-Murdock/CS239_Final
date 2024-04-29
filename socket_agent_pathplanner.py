@@ -166,7 +166,11 @@ while status != "SUCCESS":
     status = followplan.ExecutePlanToItem(path, sock_game, playernumber)
     print("checkout status is ", status)
 print("leaving the store")
-player.leave_store(sock_game, playernumber)
+# update game state so we can plan to the exit
+sock_game.send(str.encode("0 NOP"))
+output = recv_socket_data(sock_game)
+game_state = json.loads(output) # get new state   
+player.leave_store(game_state, playernumber)
 
 sock_game.close()
      
