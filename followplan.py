@@ -192,7 +192,9 @@ def ExecutePlanToItem(path, sock_game, playernumber):
                 print("Checking against norms")
                 
                 # set the action to what is specified in the path and then check if it is allowed
+                print
                 action = path[key]
+                print("action to be checked:", action)
                 actionok = checknorms(action)
                 if actionok == True:
                     ## actually take the action in the environment
@@ -220,6 +222,9 @@ def ExecutePlanToItem(path, sock_game, playernumber):
 def checknorms(action):
     # use norm.py to check if the action is allowed
     # this is hard, for now
+
+    if action == False:
+        return False
     return True
     
     
