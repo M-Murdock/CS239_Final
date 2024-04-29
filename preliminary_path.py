@@ -312,7 +312,7 @@ class PathPlanner:
             start = (self.game_state['observation']['players'][0]['position'][0], self.game_state['observation']['players'][0]['position'][1])
         
         path = self._astar(start, goal, is_item = True) # get xy coordinates
-        print("-----\n LAST ACTIONS = ", str(path[-1]), ", ", str(path[-1]), "\n --------")
+        print("-----\n LAST ACTIONS = ", str(path[-1]), ", ", str(path[-2]), "\n --------")
         if path == None:
             return None
         actions = self._get_actions(path, goal) # get action to take from each xy position
