@@ -9,6 +9,12 @@ How to run:
 - run the file socket_agent_pathplanner.py
 - tell the agent its agent number in the interactive terminal prompt
 
+The files that are changed from the original propershopper are:
+- socket_agent_pathplanner.py
+- preliminary_path.py
+- followplan.py
+- navigation_utils.py
+
 Known Bugs:
 - If the agent has more than 6 items to get, it will crash trying to get a cart, as the "INTERACT" command can not retrieve the cart for some reason.  The agent will shop successfully with a basket.
 

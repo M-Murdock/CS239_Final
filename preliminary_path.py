@@ -1,4 +1,6 @@
 # Code is adapted from astar_path_planner-1 by Hang Yu
+# Author: Mavis, Kat, Harsh, Ju-Hung, Luoyou
+
 
 from utils import recv_socket_data
 import json

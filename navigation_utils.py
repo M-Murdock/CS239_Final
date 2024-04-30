@@ -1,3 +1,6 @@
+# Author: Mavis, Kat, Harsh, Ju-Hung, Luoyou
+
+
 def point_in_object(point, obj):
     """
     Check if a point is within the boundary of an object.
