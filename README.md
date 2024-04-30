@@ -5,6 +5,15 @@ Original developers: [Teah Markstone](https://github.com/teahmarkstone/) and [Da
 Additional developers: [Matthias Scheutz](https://github.com/mscheutz/)
 
 ## Additions by Kat, Mavis, Harsh, Ju-Hung, and Luoyou
+How to run:
+- run the file socket_agent_pathplanner.py
+- tell the agent its agent number in the interactive terminal prompt
+
+Known Bugs:
+- If the agent has more than 6 items to get, it will crash trying to get a cart, as the "INTERACT" command can not retrieve the cart for some reason.  The agent will shop successfully with a basket.
+
+
+
 
 ### PathPlanner
 A PathPlanner object can be used to generate a plan from the agent's current position to a goal position. Call the `get_path` function and pass the game state and the goal location:
