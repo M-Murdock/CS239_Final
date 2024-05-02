@@ -12,7 +12,6 @@ def point_in_object(point, obj):
     Returns:
         bool: Returns True if the point is inside the object, False otherwise.
     """
-    print("point", point)
     x, y = point
     obj_left = obj['position'][0]
     obj_right = obj['position'][0] + obj['width']
@@ -38,18 +37,13 @@ def path_blocked(player_id, path, game_state):
     """
     players = game_state['observation']['players']
     carts = game_state['observation']['carts']
-    for eachplayer in players:
-        if eachplayer.get('index') == player_id:
-            player = eachplayer
-            print("player", player)
+    player = players[player_id]
     isHoldingCart = player['curr_cart'] != -1
 
     for point in path:
         # Check if point is inside any other players
         for player in players:
-            if player.get('index') != player_id:  # Ignore self
-                print("player", player)
-                print("point", point)
+            if player['index'] != player_id:  # Ignore self
                 if point_in_object(point, player):
                     return True
 

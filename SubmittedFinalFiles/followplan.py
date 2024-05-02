@@ -131,23 +131,20 @@ def GetCurrentState(game_state, playernumber):
                 state = state + "basket,"       
     if game_state["observation"]['players'][playernumber]["curr_cart"] >= 0:
         state = state + "cart,"
-
-    #for key in game_state["observation"]: 
-        for key2 in game_state["observation"]["players"]: 
-            #if key == "players":
-                for thisplayer in list(game_state["observation"]["players"]):
-                    print("index", thisplayer.get('index'))
-                    if thisplayer.get('index') == playernumber:
-                        print("found player")
-                        currentposition = round(key2.get("position")[0],3), round(key2.get("position")[1],3) # round to 3 decimal places
+    for key in game_state["observation"]: 
+        for key2 in game_state["observation"][key]: 
+            if key == "players":
+                for thisplayer in list(game_state["observation"][key]):
+                    ##print("thisplayer: ", thisplayer)
+                    ##print(thisplayer['index'])
+                    if thisplayer['index'] == playernumber:
+                        ##print("found player")
+                        currentposition = round(key2["position"][0],3), round(key2["position"][1],3) # round to 3 decimal places
                         currentposition = str(currentposition)
                         currentposition = currentposition.replace("[", "(")
                         currentposition = currentposition.replace("]", ")")
                         ##print("currentposition: ", currentposition)
                         state = state + currentposition
-                        print("state: ", state)
-                    else:
-                        print("not our player")
 
 
     ##print("state: ", state)                
