@@ -1,5 +1,5 @@
 # Author: Mavis, Kat, Harsh, Ju-Hung, Luoyou
-
+import re
 
 def point_in_object(point, obj):
     """
@@ -12,6 +12,19 @@ def point_in_object(point, obj):
     Returns:
         bool: Returns True if the point is inside the object, False otherwise.
     """
+    point = re.search(".*(\(.*\)).*", point)
+    if point:
+        point = point.group(1)
+
+    point = re.search("\((.*), (.*)\)", point)
+    x=0
+    y=0
+    if point:
+        x = point.group(1)
+        y = point.group(2)
+
+    point = (float(x), float(y))
+
     print("point", point)
     x, y = point
     obj_left = obj['position'][0]
